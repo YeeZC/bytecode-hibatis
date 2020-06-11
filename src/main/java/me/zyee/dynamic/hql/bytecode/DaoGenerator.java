@@ -62,7 +62,7 @@ public class DaoGenerator {
         body.ret();
     }
 
-    private static void defineMethods(ClassDefinition classDefinition, Class<?> inf, List<DaoMethodInfo> methods) {
+    private static void defineMethods(ClassDefinition classDefinition, Class<?> inf, List<DaoMethodInfo> methods) throws NoSuchMethodException {
         final Method[] javaMethods = inf.getDeclaredMethods();
         Map<String, DaoMethodInfo> infoMap = new HashMap<>(methods.size());
         for (DaoMethodInfo method : methods) {
@@ -109,7 +109,11 @@ public class DaoGenerator {
                 body.append(result.set(query.invoke("getResultList", List.class)));
 //                body.retObject().append(result);
             } else if (null != paramMap) {
+                final java.lang.reflect.Parameter[] javaParams = javaMethod.getParameters();
+                final String className = paramMap.getClassName();
+                if (StringUtils.isEmpty(className)) {
 
+                }
             }
 
         }
