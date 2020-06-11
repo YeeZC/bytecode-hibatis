@@ -10,17 +10,13 @@ import me.zyee.dynamic.hql.config.annotation.Content;
 public class DaoMethodInfo {
     @Attr(value = "id", require = true)
     private String id;
-    @Attr("resultMap")
-    private DaoMapInfo resultMap;
     @Attr("resultType")
     private String resultType;
-    @Attr("paramMap")
-    private DaoMapInfo paramMap;
-    @Attr("paramType")
-    private String paramType;
-    private MethodType type;
+    @Attr("native")
+    private Boolean nativeSql;
     @Content
     private String hql;
+    private MethodType type;
 
     public String getId() {
         return id;
@@ -30,36 +26,12 @@ public class DaoMethodInfo {
         this.id = id;
     }
 
-    public DaoMapInfo getResultMap() {
-        return resultMap;
-    }
-
-    public void setResultMap(DaoMapInfo resultMap) {
-        this.resultMap = resultMap;
-    }
-
     public String getResultType() {
         return resultType;
     }
 
     public void setResultType(String resultType) {
         this.resultType = resultType;
-    }
-
-    public DaoMapInfo getParamMap() {
-        return paramMap;
-    }
-
-    public void setParamMap(DaoMapInfo paramMap) {
-        this.paramMap = paramMap;
-    }
-
-    public String getParamType() {
-        return paramType;
-    }
-
-    public void setParamType(String paramType) {
-        this.paramType = paramType;
     }
 
     public MethodType getType() {
@@ -76,5 +48,13 @@ public class DaoMethodInfo {
 
     public void setHql(String hql) {
         this.hql = hql;
+    }
+
+    public Boolean isNativeSql() {
+        return nativeSql;
+    }
+
+    public void setNativeSql(Boolean nativeSql) {
+        this.nativeSql = nativeSql;
     }
 }

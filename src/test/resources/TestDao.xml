@@ -1,0 +1,15 @@
+<dao id="me.zyee.dynamic.hql.bytecode.TestDao" entity="me.zyee.dynamic.hql.bytecode.TestEntity">
+    <select id="findAll">
+        from TestEntity
+    </select>
+    <select id="findNativeAll" native="true">
+        select * from test
+    </select>
+    <select id="findById">
+        from TestEntity where id = :id
+    </select>
+
+    <insert id="insert">
+        insert into test values (:id, :name)
+    </insert>
+</dao>

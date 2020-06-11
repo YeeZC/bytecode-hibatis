@@ -5,5 +5,5 @@ package me.zyee.dynamic.hql.config;
  * Created by yeezc on 2020/6/11
  **/
 public enum MethodType {
-    SELECT, UPDATE
+    SELECT, MODIFY
 }
