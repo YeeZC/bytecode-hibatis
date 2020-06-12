@@ -31,38 +31,58 @@ public class DefaultDaoVisitor {
         this.methodVisitor = new DefaultDaoMethodVisitor();
     }
 
+    /**
+     * 将DaoInfo转成ClassDefinition 结果用于生成实体Dao类
+     *
+     * @param info
+     * @return
+     * @throws ClassNotFoundException
+     * @throws NoSuchMethodException
+     */
     public ClassDefinition visit(DaoInfo info) throws ClassNotFoundException, NoSuchMethodException {
         final Class<?> inf = ClassUtils.getClass(info.getClassName());
         final Class<?> entity = ClassUtils.getClass(info.getEntity());
+        // public final class TestDaoImpl
         ClassDefinition classDefinition = new ClassDefinition(Access.a(Access.PUBLIC, Access.FINAL),
                 DaoGenerator.makeClassName(inf.getPackage(), inf.getSimpleName() + "Impl"),
                 ParameterizedType.type(Object.class),
                 ParameterizedType.type(inf));
+        // private Session session;
         final FieldDefinition session = classDefinition
                 .declareField(Access.a(Access.PRIVATE), "session"
                         , Session.class);
+        // private final Class entityClass;
         final FieldDefinition entityClass = classDefinition
                 .declareField(Access.a(Access.PRIVATE, Access.FINAL), "entityClass"
                         , Class.class);
+        // private TestDaoImpl(Session session) {
+        //      this.session = session;
+        //      this.entityClass = TestEntity.class;
+        // }
         createConstructor(entity, classDefinition, session, entityClass);
 
         final List<DaoMethodInfo> methods = info.getMethodInfos();
 
+        // 将解析的方法放到map中，便于判断方法是否重复，是否有实现
         Map<String, DaoMethodInfo> infoMap = new HashMap<>(methods.size());
         for (DaoMethodInfo method : methods) {
             final DaoMethodInfo ret = infoMap.putIfAbsent(method.getId(), method);
+            // 如果ret不为空则表示map中已存在，表示存在重复的实现方法
             if (ret != null) {
                 throw new RuntimeException("重复");
             }
         }
 
         for (Method method : inf.getDeclaredMethods()) {
+            // 接口中待实现的方法没有实现
             if (!infoMap.containsKey(method.getName())) {
                 throw new RuntimeException("Not found");
             }
+            // 生成接口中的方法实现
             methodVisitor.visit(classDefinition, method, infoMap.get(method.getName()));
         }
 
+        // public static TestDaoImpl newInstance(Session session);
         createNewInstance(classDefinition);
         return classDefinition;
     }

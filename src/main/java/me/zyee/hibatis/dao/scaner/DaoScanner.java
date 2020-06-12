@@ -30,6 +30,7 @@ public class DaoScanner {
         if (null == resource) {
             return Collections.emptyList();
         }
+        // 如果是jar包则从jar包中查找，否则从文件中查找
         if (resource.getPath().contains(".jar")) {
             return scanDaoFromJar(new URL[]{resource}, "", true);
         } else {

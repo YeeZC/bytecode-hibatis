@@ -14,7 +14,13 @@ import java.util.List;
  * Created by yee on 2020/6/12
  **/
 public class HiBatisConfig {
+    /**
+     * hibernate原生config
+     */
     private Configuration configuration;
+    /**
+     * dao xml的扫描路径
+     */
     private String daoXmlScanPath;
 
     public Configuration getConfiguration() {
