@@ -13,7 +13,6 @@ import java.util.Optional;
 public interface HiBatisTemplate {
     /**
      * 有事务的执行
-     *
      * @param callable
      * @param <T>
      * @return
@@ -22,7 +21,6 @@ public interface HiBatisTemplate {
 
     /**
      * 无事务的执行
-     *
      * @param callable
      * @param <T>
      * @return
@@ -31,7 +29,6 @@ public interface HiBatisTemplate {
 
     /**
      * 创建Dao对象
-     *
      * @param daoInf
      * @param session
      * @param <T>
@@ -49,7 +46,6 @@ public interface HiBatisTemplate {
 
     /**
      * 批量插入方法
-     *
      * @param session
      * @param entities
      */
@@ -105,7 +101,6 @@ public interface HiBatisTemplate {
 
     /**
      * 更新方法
-     *
      * @param session
      * @param entity
      */
@@ -113,7 +108,6 @@ public interface HiBatisTemplate {
 
     /**
      * 自定义dao执行 有事务
-     *
      * @param daoClass
      * @param callable
      * @param <Dao>
@@ -129,7 +123,6 @@ public interface HiBatisTemplate {
 
     /**
      * 自定义dao执行  无事务
-     *
      * @param daoClass
      * @param callable
      * @param <Dao>
@@ -145,7 +138,6 @@ public interface HiBatisTemplate {
 
     /**
      * 有事务 插入单值
-     *
      * @param entity
      */
     default void insert(Object entity) {
@@ -181,7 +173,6 @@ public interface HiBatisTemplate {
 
     /**
      * 有事务 批量删除
-     *
      * @param entities
      */
     default void delete(Iterable<Object> entities) {
@@ -222,13 +213,12 @@ public interface HiBatisTemplate {
      *
      * @param entity
      */
-    default void update(Object entity) {
+    default void update(Object entity)  {
         runTx(session -> session.merge(entity));
     }
 
     /**
      * 查找所有
-     *
      * @param entity
      * @param <T>
      * @return
@@ -239,13 +229,11 @@ public interface HiBatisTemplate {
 
     /**
      * 单参数process
-     *
      * @param <T>
      */
     interface Process<T> {
         /**
          * 执行方法
-         *
          * @param session
          * @return
          * @throws Exception
@@ -255,16 +243,14 @@ public interface HiBatisTemplate {
 
     /**
      * 双参数process
-     *
      * @param <Dao> Dao接口
      * @param <Ret> 返回值
      */
     interface BiProcess<Dao, Ret> {
         /**
          * 执行方法
-         *
          * @param session hibernate session
-         * @param dao     自定义的dao
+         * @param dao 自定义的dao
          * @return
          * @throws Exception
          */
