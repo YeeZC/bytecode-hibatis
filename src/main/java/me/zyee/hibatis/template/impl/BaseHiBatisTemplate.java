@@ -122,7 +122,13 @@ public class BaseHiBatisTemplate implements HiBatisTemplate {
         return session.createQuery(query).getResultList();
     }
 
-     @Override
+    @Override
+    public <T> List<T> findAll(Session session, Class<T> entity) {
+        final CriteriaQuery<T> query = session.getCriteriaBuilder().createQuery(entity);
+        return session.createQuery(query).getResultList();
+    }
+
+    @Override
      public void update(Session session, Object entity) {
         session.merge(entity);
     }

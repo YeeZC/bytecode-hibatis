@@ -27,6 +27,7 @@ public class DomParser {
     private static final String SELECT = "select";
     private static final String UPDATE = "update";
     private static final String INSERT = "insert";
+    private static final String DELETE = "delete";
 
     public static DaoInfo parse(InputStream dom) throws Exception {
         try (InputStream is = dom) {
@@ -44,6 +45,7 @@ public class DomParser {
                             parseMethod(daoInfo, element, MethodType.SELECT, false);
                             break;
                         case UPDATE:
+                        case DELETE:
                             parseMethod(daoInfo, element, MethodType.MODIFY, false);
                             break;
                         case INSERT:

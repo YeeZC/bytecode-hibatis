@@ -9,5 +9,7 @@
 <!ATTLIST select returnType CDATA #IMPLIED>
 <!ATTLIST update id CDATA #REQUIRED>
 <!ATTLIST update native CDATA "false" #IMPLIED>
+<!ATTLIST delete id CDATA #REQUIRED>
+<!ATTLIST delete native CDATA "false" #IMPLIED>
 <!ATTLIST insert id CDATA #REQUIRED>
 <!ATTLIST insert native CDATA "true" #IMPLIED>

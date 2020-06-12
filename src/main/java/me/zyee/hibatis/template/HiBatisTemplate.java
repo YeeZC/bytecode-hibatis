@@ -28,6 +28,7 @@ public interface HiBatisTemplate {
     <T>Optional<T> get(Session session, Class<T> entity, Serializable id) ;
 
     <T>List<T> findByIds(Session session, Class<T> entity, Iterable<Serializable> ids) ;
+    <T>List<T> findAll(Session session, Class<T> entity);
 
     void update(Session session, Object entity);
 
@@ -85,6 +86,10 @@ public interface HiBatisTemplate {
 
     default void update(Object entity)  {
         runTx(session -> session.merge(entity));
+    }
+
+    default <T> List<T> findAll(Class<T> entity) {
+        return runNonTx(session -> findAll(session, entity));
     }
 
     interface Process<T> {
