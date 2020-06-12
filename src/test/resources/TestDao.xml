@@ -1,4 +1,4 @@
-<dao id="me.zyee.dynamic.hql.bytecode.TestDao" entity="me.zyee.dynamic.hql.bytecode.TestEntity">
+<dao id="me.zyee.hibatis.bytecode.TestDao" entity="me.zyee.hibatis.bytecode.TestEntity">
     <select id="findAll">
         from TestEntity
     </select>
