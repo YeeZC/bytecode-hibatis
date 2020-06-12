@@ -23,7 +23,7 @@ import java.util.List;
  * Created by yee on 2020/6/11
  **/
 public class DomParser {
-    private static final String DAO = "dao";
+    private static final String DAO = "hibatis";
     private static final String SELECT = "select";
     private static final String UPDATE = "update";
     private static final String INSERT = "insert";
