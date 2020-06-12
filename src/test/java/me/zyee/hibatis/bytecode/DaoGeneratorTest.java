@@ -18,20 +18,9 @@ import java.util.Optional;
  * Created by yee on 2020/6/11
  */
 public class DaoGeneratorTest {
-    private SessionFactory sessionFactory;
 
     @Test
     public void generate() throws Exception {
-//        final SessionFactory factory = getFactory();
-//        final Session session = factory.openSession();
-//        final InputStream is = DaoGenerator.class.getClassLoader().getResourceAsStream("TestDao.xml");
-//        final DaoInfo parse = DomParser.parse(is);
-//        final Class<?> generate = DaoGenerator.generate(parse, Paths.get("D:\\1"));
-//        final TestDao o = (TestDao) ConstructorUtils.invokeConstructor(generate, session);
-//        final Transaction transaction = session.beginTransaction();
-//        final List nativeAll = o.findNativeAll();
-//        System.out.println(nativeAll);
-//        transaction.commit();
 
         final Configuration configuration = getConfiguration();
         final HiBatisConfig hiBatisConfig = new HiBatisConfig();
@@ -52,23 +41,8 @@ public class DaoGeneratorTest {
             configuration.configure("hibernate.cfg.xml");
         }
 
-//        SwiftConfigConstants.registerEntity(AbstractExecutorTask.TYPE);
         configuration.addAnnotatedClass(TestEntity.class);
         return configuration;
     }
 
-    synchronized
-    public SessionFactory getFactory() {
-        if (null == sessionFactory) {
-            sessionFactory = initSessionFactory();
-        }
-        return sessionFactory;
-    }
-
-    private SessionFactory initSessionFactory() {
-        Configuration configuration = getConfiguration();
-        ServiceRegistry registry = new StandardServiceRegistryBuilder().applySettings(
-                configuration.getProperties()).build();
-        return configuration.buildSessionFactory(registry);
-    }
 }
