@@ -20,7 +20,7 @@ public class DaoRegistry {
     private final Map<Class<?>, LazyGet<Class<?>>> container = new ConcurrentHashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(DaoRegistry.class);
 
-    public DaoRegistry addDao(DaoInfo dao) {
+    public void addDao(DaoInfo dao) {
         try {
             final Class<?> aClass = ClassUtils.getClass(dao.getClassName());
             container.put(aClass, LazyGet.of(() -> {
@@ -34,12 +34,12 @@ public class DaoRegistry {
         } catch (Exception e) {
             LOGGER.error("parse error", e);
         }
-        return this;
     }
 
     public <T> T getDao(Class<T> daoClass, Session session) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         if (container.containsKey(daoClass)) {
-            return daoClass.cast(MethodUtils.invokeStaticMethod(container.get(daoClass).get(), "newInstance", session));
+            final Class<?> cls = container.get(daoClass).get();
+            return daoClass.cast(MethodUtils.invokeStaticMethod(cls, "newInstance", session));
         }
         throw new RuntimeException("Not found");
     }

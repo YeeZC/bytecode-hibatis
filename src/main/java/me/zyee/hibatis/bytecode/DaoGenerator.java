@@ -1,6 +1,7 @@
 package me.zyee.hibatis.bytecode;
 
 import io.airlift.bytecode.BytecodeUtils;
+import io.airlift.bytecode.ClassDefinition;
 import io.airlift.bytecode.ClassGenerator;
 import io.airlift.bytecode.DynamicClassLoader;
 import io.airlift.bytecode.ParameterizedType;
@@ -29,12 +30,16 @@ public class DaoGenerator {
      * @throws NoSuchMethodException
      */
     public static Class<?> generate(DaoInfo info, Path out) throws ClassNotFoundException, NoSuchMethodException {
+        // dao 接口
         final Class<?> inf = ClassUtils.getClass(info.getClassName());
 
+        // 动态字节码生成的classLoader
         final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(DaoGenerator.class.getClassLoader()
                 , Collections.emptyMap());
-
-        return ClassGenerator.classGenerator(dynamicClassLoader).dumpClassFilesTo(Optional.ofNullable(out)).defineClass(new DefaultDaoVisitor().visit(info), inf);
+        // 实体类的描述
+        final ClassDefinition visit = new DefaultDaoVisitor().visit(info);
+        // 生成方法
+        return ClassGenerator.classGenerator(dynamicClassLoader).dumpClassFilesTo(Optional.ofNullable(out)).defineClass(visit, inf);
     }
 
     public static Class<?> generate(DaoInfo info) throws ClassNotFoundException, NoSuchMethodException {
