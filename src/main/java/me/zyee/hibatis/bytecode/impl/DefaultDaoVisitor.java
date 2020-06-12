@@ -40,7 +40,9 @@ public class DefaultDaoVisitor {
      * @throws NoSuchMethodException
      */
     public ClassDefinition visit(DaoInfo info) throws ClassNotFoundException, NoSuchMethodException {
+        // dao 接口
         final Class<?> inf = ClassUtils.getClass(info.getClassName());
+        // entity类型
         final Class<?> entity = ClassUtils.getClass(info.getEntity());
         // public final class TestDaoImpl
         ClassDefinition classDefinition = new ClassDefinition(Access.a(Access.PUBLIC, Access.FINAL),
@@ -92,7 +94,7 @@ public class DefaultDaoVisitor {
         final MethodDefinition constructor = classDefinition.declareConstructor(Access.a(Access.PRIVATE), paramSession);
         final BytecodeBlock body = constructor.getBody();
         final Scope scope = constructor.getScope();
-        body.comment("Inital");
+        body.setDescription("Constructor");
         body.append(constructor.getThis())
                 .invokeConstructor(Object.class);
         body.append(scope.getThis().setField(session, paramSession))

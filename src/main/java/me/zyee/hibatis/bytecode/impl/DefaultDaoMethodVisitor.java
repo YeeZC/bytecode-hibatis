@@ -96,13 +96,13 @@ public class DefaultDaoMethodVisitor {
         if (nativeSql) {
             visitNativeSelect(info, query, returnType);
         } else {
-            if (ClassUtils.isAssignable(Collection.class, returnType)  || ClassUtils.isAssignable(returnType, Collection.class)) {
+            if (ClassUtils.isAssignable(Collection.class, returnType) || ClassUtils.isAssignable(returnType, Collection.class)) {
                 body.append(query.invoke("getResultList", List.class));
             } else if (returnType.isArray()) {
                 final Method toArray = List.class.getDeclaredMethod("toArray", Object[].class);
                 body.append(query.invoke("getResultList", List.class).invoke(toArray,
                         BytecodeExpressions.newArray(ParameterizedType.type(returnType.getComponentType()), 0)));
-            }else  {
+            } else {
                 body.append(query.invoke("getSingleResult", Object.class).cast(returnType));
             }
             body.ret(returnType);
@@ -126,7 +126,7 @@ public class DefaultDaoMethodVisitor {
             }
             body.append(query.invoke("getResultList", List.class));
             body.retObject();
-        } else if (returnType.isArray()){
+        } else if (returnType.isArray()) {
             body.append(query.invoke(setTrans,
                     BytecodeExpressions.invokeStatic(transformer,
                             BytecodeExpressions.constantClass(returnType.getComponentType()))));
@@ -151,7 +151,6 @@ public class DefaultDaoMethodVisitor {
     }
 
 
-
     private void setMapProperties(Variable query, Parameter[] parameters) throws NoSuchMethodException, ClassNotFoundException {
         if (parameters.length > 0) {
             final Variable properties = scope.createTempVariable(Map.class);
@@ -164,11 +163,12 @@ public class DefaultDaoMethodVisitor {
                     final String javaClassName = parameter.getType().getJavaClassName();
                     final Class<?> aClass = ClassUtils.getClass(javaClassName);
                     if (!ClassUtils.isPrimitiveOrWrapper(aClass) && !ClassUtils.isAssignable(String.class, aClass)) {
-                        final List<Field> fields = FieldUtils.getAllFieldsList(aClass);
+                        final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(aClass, Param.class);
                         final Method readField = FieldUtils.class.getDeclaredMethod("readField", Object.class, String.class, boolean.class);
                         for (Field field : fields) {
+                            final Param param = field.getAnnotation(Param.class);
                             body.append(properties.invoke(put,
-                                    BytecodeExpressions.constantString(field.getName()),
+                                    BytecodeExpressions.constantString(param.value()),
                                     BytecodeExpressions.invokeStatic(readField, parameter,
                                             BytecodeExpressions.constantString(field.getName()),
                                             BytecodeExpressions.constantTrue())));
