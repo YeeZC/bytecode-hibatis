@@ -11,6 +11,7 @@ import io.airlift.bytecode.Variable;
 import io.airlift.bytecode.expression.BytecodeExpressions;
 import me.zyee.hibatis.dao.DaoMethodInfo;
 import me.zyee.hibatis.dao.MethodType;
+import me.zyee.hibatis.dao.annotation.Param;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -27,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import me.zyee.hibatis.dao.annotation.Param;
 
 /**
  * @author yee
@@ -37,22 +37,36 @@ public class DefaultDaoMethodVisitor {
     private BytecodeBlock body;
     private Scope scope;
 
+    /**
+     * 生成接口方法的实现
+     *
+     * @param classDefinition
+     * @param method
+     * @param daoInfo
+     * @return
+     * @throws NoSuchMethodException
+     * @throws ClassNotFoundException
+     */
     public MethodDefinition visit(ClassDefinition classDefinition, Method method, DaoMethodInfo daoInfo) throws NoSuchMethodException, ClassNotFoundException {
         final String methodName = method.getName();
         final Parameter[] parameters = Stream.of(method.getParameters()).map(parameter -> {
             final Class<?> type = parameter.getType();
             final Param param = parameter.getAnnotation(Param.class);
+            // 参数打了Param注解的是直接注入sql/hql中的
+            // 参数没打Param直接表示是实体类参数，目前的处理方法是将每个属性put到map中作为sql/hql的参数
             if (null != param) {
                 return Parameter.arg(param.value(), type);
             }
             return Parameter.arg("var_" + parameter.getName(), type);
         }).toArray(Parameter[]::new);
+        // 实现方法：1 方法签名 public returnType methodName(args...);
         final ParameterizedType returnType = ParameterizedType.type(method.getReturnType());
         final MethodDefinition methodDefinition = classDefinition.declareMethod(Access.a(Access.PUBLIC), methodName, returnType, parameters);
         body = methodDefinition.getBody();
         scope = methodDefinition.getScope();
         Variable query = null;
         final String hql = daoInfo.getHql().trim();
+        // 实现方法：2 构造Query对象 NativeQuery query = this.session.createSQLQuery(hql); // Query query = this.session.createQuery(hql);
         if (daoInfo.isNativeSql()) {
             query = createVariable(NativeQuery.class, "query");
             body.append(query.set(scope.getThis().getField("session", Session.class).invoke("createSQLQuery", NativeQuery.class,
@@ -62,7 +76,9 @@ public class DefaultDaoMethodVisitor {
             body.append(query.set(scope.getThis().getField("session", Session.class).invoke("createQuery", Query.class,
                     BytecodeExpressions.constantString(hql))));
         }
+        // 实现方法：3 传参数 query.setProperties(Map);
         setMapProperties(query, parameters);
+        // 实现方法：4 处理返回值
         if (daoInfo.getType() == MethodType.SELECT) {
             visitSelect(daoInfo, query, method.getReturnType(), daoInfo.isNativeSql());
         } else {

@@ -29,11 +29,20 @@ public class DomParser {
     private static final String INSERT = "insert";
     private static final String DELETE = "delete";
 
+    /**
+     * TODO 自定义异常
+     * 解析xml成DaoInfo
+     *
+     * @param dom xml的inputstream
+     * @return 返回解析后的DaoInfo
+     * @throws Exception 解析异常
+     */
     public static DaoInfo parse(InputStream dom) throws Exception {
         try (InputStream is = dom) {
             SAXReader reader = new SAXReader();
             Document document = reader.read(is);
             Element root = document.getRootElement();
+            // 根节点
             if (DAO.equals(root.getName())) {
                 List<Element> elements = root.elements();
                 DaoInfo daoInfo = readAttributes(root, new DaoInfo());
@@ -42,13 +51,16 @@ public class DomParser {
                     String name = element.getName();
                     switch (name) {
                         case SELECT:
+                            // 解析查询
                             parseMethod(daoInfo, element, MethodType.SELECT, false);
                             break;
                         case UPDATE:
                         case DELETE:
+                            // 解析delete 和 update 因为执行方法是一样的，就当成一类
                             parseMethod(daoInfo, element, MethodType.MODIFY, false);
                             break;
                         case INSERT:
+                            // 解析insert 因为 hibernate 通过 hql 没办法插入，只能通过原生sql插入
                             parseMethod(daoInfo, element, MethodType.MODIFY, true);
                             break;
                         default:
@@ -80,6 +92,15 @@ public class DomParser {
         dao.getMethodInfos().add(method);
     }
 
+    /**
+     * 根据实体类属性上打的注解解析
+     *
+     * @param child
+     * @param property
+     * @param <T>
+     * @return
+     * @throws Exception
+     */
     private static <T> T readAttributes(Element child, T property) throws Exception {
         final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(property.getClass(), Attr.class);
         for (Field field : fields) {
