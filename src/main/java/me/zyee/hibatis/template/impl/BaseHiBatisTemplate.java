@@ -43,6 +43,7 @@ public class BaseHiBatisTemplate implements HiBatisTemplate {
                 tx.commit();
                 return process;
             } catch (Exception e) {
+                LOGGER.error("invoke error rollback", e);
                 tx.rollback();
             }
         }
@@ -54,7 +55,8 @@ public class BaseHiBatisTemplate implements HiBatisTemplate {
         try (final Session session = sessionFactory.openSession()) {
             try {
                 return callable.process(session);
-            } catch (Exception ignore) {
+            } catch (Exception e) {
+                LOGGER.error("invoke error", e);
             }
         }
         return null;

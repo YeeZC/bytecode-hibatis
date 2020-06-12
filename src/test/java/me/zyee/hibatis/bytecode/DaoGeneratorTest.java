@@ -3,14 +3,11 @@ package me.zyee.hibatis.bytecode;
 import me.zyee.hibatis.config.HiBatisConfig;
 import me.zyee.hibatis.template.HiBatisTemplate;
 import me.zyee.hibatis.template.factory.TemplateFactory;
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.service.ServiceRegistry;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Optional;
+import java.util.List;
 
 /**
  * @author yee
@@ -28,8 +25,8 @@ public class DaoGeneratorTest {
         hiBatisConfig.setDaoXmlScanPath("");
         final TemplateFactory templateFactory = hiBatisConfig.buildTemplateFactory();
         final HiBatisTemplate template = templateFactory.createTemplate();
-        final Optional<TestEntity> hello = template.get(TestEntity.class, "hello");
-        System.out.println(hello.get());
+        final List<TestEntity> testEntities = template.runTx(TestDao.class, ((session, testDao) -> testDao.findAll()));
+        System.out.println(testEntities);
     }
 
     private Configuration getConfiguration() {
