@@ -2,9 +2,9 @@
 <!DOCTYPE hibatis SYSTEM "hibatis.dtd">
 
 <hibatis id="me.zyee.hibatis.bytecode.TestDao" entity="me.zyee.hibatis.bytecode.TestEntity">
-    <map id="all">
-        <column column="id" field="id" javaType="java.lang.String"/>
-        <column column="name" field="name" javaType="java.lang.String"/>
+    <map id="all" class="java.util.HashMap">
+        <column column="id" field="hello" javaType="java.lang.String"/>
+        <column column="name" field="gogogo" javaType="java.lang.String"/>
     </map>
     <select id="findAll">
         from TestEntity

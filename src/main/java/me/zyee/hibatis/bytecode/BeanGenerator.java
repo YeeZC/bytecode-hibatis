@@ -38,14 +38,14 @@ public class BeanGenerator {
         final String packageName = BeanGenerator.class.getPackage().getName();
         final ClassDefinition classDefinition = new ClassDefinition(Access.a(Access.PUBLIC, Access.FINAL),
                 DaoGenerator.makeClassName(packageName + ".bean", mapInfo.getMapId()),
-                ParameterizedType.type(Object.class),
+                ParameterizedType.type(ObjectCast.class),
                 ParameterizedType.type(Serializable.class));
         for (DaoProperty property : mapInfo.getProperties()) {
             classDefinition.declareField(Access.a(Access.PUBLIC), property.getColumn(), property.getJavaType());
         }
         final Class<?> className = mapInfo.getClassName();
         MethodDefinition transfer = classDefinition.declareMethod(Access.a(Access.PUBLIC), "transfer",
-                ParameterizedType.type(Object.class));
+                ParameterizedType.type(ObjectCast.class));
         if (null != className) {
             makeTransferMethod(transfer, mapInfo.getClassName(), mapInfo.getProperties());
         } else {
@@ -62,8 +62,8 @@ public class BeanGenerator {
         final Scope scope = methodDefinition.getScope();
         final Variable result = createVariable(scope, returnType, "result");
         body.append(result.set(BytecodeExpressions.newInstance(returnType)));
-        final Method put = Map.class.getMethod("put", Object.class, Object.class);
-        final Method writeField = FieldUtils.class.getMethod("writeField", Object.class, String.class, Object.class, boolean.class);
+        final Method put = Map.class.getMethod("put", ObjectCast.class, ObjectCast.class);
+        final Method writeField = FieldUtils.class.getMethod("writeField", ObjectCast.class, String.class, ObjectCast.class, boolean.class);
         if (ClassUtils.isAssignable(Map.class, returnType) || ClassUtils.isAssignable(returnType, Map.class)) {
             for (DaoProperty property : properties) {
                 body.append(result.invoke(put, BytecodeExpressions.constantString(property.getProperty()),

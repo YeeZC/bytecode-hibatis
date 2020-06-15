@@ -12,7 +12,6 @@ import io.airlift.bytecode.expression.BytecodeExpression;
 import io.airlift.bytecode.expression.BytecodeExpressions;
 import me.zyee.hibatis.bytecode.BeanGenerator;
 import me.zyee.hibatis.bytecode.MethodVisitor;
-import me.zyee.hibatis.bytecode.ObjectCast;
 import me.zyee.hibatis.dao.DaoMethodInfo;
 import me.zyee.hibatis.dao.MethodType;
 import me.zyee.hibatis.dao.annotation.Param;
@@ -67,7 +66,7 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
             final Variable properties = scope.createTempVariable(Map.class);
             body.append(properties.set(BytecodeExpressions.newInstance(ParameterizedType.type(HashMap.class),
                     BytecodeExpressions.constantInt(parameters.length))));
-            final Method put = Map.class.getDeclaredMethod("put", Object.class, Object.class);
+            final Method put = Map.class.getDeclaredMethod("put", java.lang.Object.class, java.lang.Object.class);
             for (Parameter parameter : parameters) {
                 final String name = parameter.getName();
                 if (name.startsWith("var_")) {
@@ -75,7 +74,7 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
                     final Class<?> aClass = ClassUtils.getClass(javaClassName);
                     if (!ClassUtils.isPrimitiveOrWrapper(aClass) && !ClassUtils.isAssignable(String.class, aClass)) {
                         final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(aClass, Param.class);
-                        final Method readField = FieldUtils.class.getDeclaredMethod("readField", Object.class, String.class, boolean.class);
+                        final Method readField = FieldUtils.class.getDeclaredMethod("readField", java.lang.Object.class, String.class, boolean.class);
                         for (Field field : fields) {
                             final Param param = field.getAnnotation(Param.class);
                             body.append(properties.invoke(put,
@@ -159,32 +158,27 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
     protected void visitSelect(DaoMethodInfo methodInfo, Class<?> methodReturnType) throws NoSuchMethodException {
         Method transformer = Transformers.class.getDeclaredMethod("aliasToBean", Class.class);
         Method setTrans = Query.class.getDeclaredMethod("setResultTransformer", ResultTransformer.class);
-        Method add = List.class.getDeclaredMethod("add", Object.class);
-        Method get = List.class.getDeclaredMethod("get", int.class);
-        Method size = List.class.getDeclaredMethod("size");
-        final Method toArray = List.class.getDeclaredMethod("toArray", Object[].class);
+        final Method toArray = List.class.getDeclaredMethod("toArray", java.lang.Object[].class);
         if (ClassUtils.isAssignable(Collection.class, methodReturnType) || ClassUtils.isAssignable(methodReturnType, Collection.class)) {
-            final Variable variable = invokeList(methodInfo, transformer, null, setTrans, add, get, size);
+            final Variable variable = invokeList(methodInfo, transformer, null, setTrans);
             body.append(variable).retObject();
         } else if (methodReturnType.isArray()) {
-            final Variable variable = invokeList(methodInfo, transformer, methodReturnType.getComponentType(), setTrans, add, get, size);
+            final Variable variable = invokeList(methodInfo, transformer, methodReturnType.getComponentType(), setTrans);
             body.append(variable.invoke(toArray, BytecodeExpressions.newArray(ParameterizedType.type(methodReturnType.getComponentType()), 0)));
             body.retObject();
         } else {
             final String resultMap = methodInfo.getResultMap();
             final Class<?> resultType = methodInfo.getResultType();
             if (StringUtils.isNotEmpty(resultMap)) {
-                final Class<?> mapClass = registry.getMapClass(resultMap);
-                body.append(query.invoke(setTrans,
-                        BytecodeExpressions.invokeStatic(transformer,
-                                BytecodeExpressions.constantClass(mapClass))));
-                body.append(query.invoke("getSingleResult", Object.class).cast(mapClass).invoke("transfer", Object.class));
+                body.append(registry.getMapBlock(resultMap, scope, query));
+                body.append(query.invoke("getSingleResult", java.lang.Object.class)
+                        .cast(registry.getMapClass(resultMap)));
                 body.retObject();
             } else if (null != resultType) {
                 body.append(query.invoke(setTrans,
                         BytecodeExpressions.invokeStatic(transformer,
                                 BytecodeExpressions.constantClass(resultType))));
-                body.append(query.invoke("getSingleResult", Object.class));
+                body.append(query.invoke("getSingleResult", java.lang.Object.class));
                 body.retObject();
             } else {
                 if (!ClassUtils.isPrimitiveOrWrapper(methodReturnType) && !methodReturnType.equals(String.class)) {
@@ -192,26 +186,21 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
                             BytecodeExpressions.invokeStatic(transformer,
                                     BytecodeExpressions.constantClass(methodReturnType))));
                 }
-                body.append(visitSingleReturnType(query.invoke("getSingleResult", Object.class), methodReturnType));
+                body.append(visitSingleReturnType(query.invoke("getSingleResult", java.lang.Object.class), methodReturnType));
                 body.ret(methodReturnType);
             }
         }
     }
 
     protected Variable invokeList(DaoMethodInfo methodInfo, Method transformer, Class<?> componentClass,
-                                  Method setTrans, Method add, Method get, Method size) {
+                                  Method setTrans) throws NoSuchMethodException {
         final String resultMap = methodInfo.getResultMap();
         final Class<?> resultType = methodInfo.getResultType();
         if (StringUtils.isNotEmpty(resultMap)) {
-            final Class<?> mapClass = registry.getMapClass(resultMap);
-            body.append(query.invoke(setTrans,
-                    BytecodeExpressions.invokeStatic(transformer,
-                            BytecodeExpressions.constantClass(mapClass))));
-            final Variable tmp = BeanGenerator.createVariable(scope, List.class, "tmp");
+            body.append(registry.getMapBlock(resultMap, scope, query));
+            final Variable tmp = BeanGenerator.createVariable(scope, List.class, "result");
             body.append(tmp.set(query.invoke("getResultList", List.class)));
-            final Variable result = BeanGenerator.createVariable(scope, List.class, "result");
-            body.append(result.set(BytecodeExpressions.invokeStatic(ObjectCast.class, "cast", List.class, tmp)));
-            return result;
+            return tmp;
         } else if (null != resultType) {
             final Variable result = BeanGenerator.createVariable(scope, List.class, "result");
             body.append(query.invoke(setTrans,
