@@ -1,15 +1,18 @@
 package me.zyee.hibatis.transformer;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.transform.AliasedTupleSubsetResultTransformer;
 import org.hibernate.transform.ResultTransformer;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,33 +37,61 @@ public class HibatisResultTransformer extends AliasedTupleSubsetResultTransforme
 
     @Override
     public Object transformTuple(Object[] tuple, String[] aliases) {
-        if (ClassUtils.isAssignable(Map.class, targetClass) || ClassUtils.isAssignable(targetClass, Map.class)) {
+        if (ObjectUtils.allNotNull(aliases)) {
             try {
                 Object result = targetClass.newInstance();
-                final Method put = MethodUtils.getAccessibleMethod(Map.class, "put", Object.class, Object.class);
-                for (int i = 0; i < tuple.length; i++) {
-                    String alias = aliases[i];
-                    if (alias != null) {
-                        put.invoke(result, alias2Property.get(alias), tuple[i]);
+                if (ClassUtils.isAssignable(Map.class, targetClass) || ClassUtils.isAssignable(targetClass, Map.class)) {
+                    final Method put = MethodUtils.getAccessibleMethod(Map.class, "put", Object.class, Object.class);
+                    for (int i = 0; i < tuple.length; i++) {
+                        String alias = aliases[i];
+                        if (alias != null) {
+                            put.invoke(result, alias2Property.getOrDefault(alias, alias), tuple[i]);
+                        }
+                    }
+                } else {
+                    for (int i = 0; i < aliases.length; i++) {
+                        if (null != aliases[i]) {
+                            FieldUtils.writeField(result, alias2Property.getOrDefault(aliases[i], aliases[i]), tuple[i], true);
+                        }
                     }
                 }
                 return result;
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new HibernateException("Could not instantiate resultclass: " + targetClass.getName());
             }
-
-        } else {
+        } else if (tuple.length == 1) {
+            if (null == tuple[0]) {
+                return null;
+            }
+            final Class<?> item = tuple[0].getClass();
+            if (ClassUtils.isPrimitiveOrWrapper(item) || ClassUtils.isAssignable(String.class, item)) {
+                return item;
+            }
             try {
                 Object result = targetClass.newInstance();
-                for (int i = 0; i < aliases.length; i++) {
-                    if (null != aliases[i]) {
-                        FieldUtils.writeField(result, alias2Property.get(aliases[i]), tuple[i], true);
+                final List<Field> fields = FieldUtils.getAllFieldsList(item);
+                if (ClassUtils.isAssignable(Map.class, targetClass) || ClassUtils.isAssignable(targetClass, Map.class)) {
+                    final Method put = MethodUtils.getAccessibleMethod(Map.class, "put", Object.class, Object.class);
+                    for (Field field : fields) {
+                        final Object o = FieldUtils.readField(field, tuple[0], true);
+                        if (null != o) {
+                            put.invoke(result, alias2Property.getOrDefault(field.getName(), field.getName()), o);
+                        }
+                    }
+                } else {
+                    for (Field field : fields) {
+                        final Object o = FieldUtils.readField(field, tuple[0], true);
+                        if (null != o) {
+                            FieldUtils.writeField(result, alias2Property.getOrDefault(field.getName(), field.getName()), o, true);
+                        }
                     }
                 }
                 return result;
-            } catch (InstantiationException | IllegalAccessException e) {
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new HibernateException("Could not instantiate resultclass: " + targetClass.getName());
             }
+        } else {
+            return tuple;
         }
     }
 

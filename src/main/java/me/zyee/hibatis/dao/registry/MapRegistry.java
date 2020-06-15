@@ -32,7 +32,6 @@ public class MapRegistry {
     public void addMap(DaoMapInfo mapInfo) {
         container.put(mapInfo.getMapId(), LazyGet.of((scope, query) -> {
             final BytecodeBlock body = new BytecodeBlock();
-
             final Method put = MethodUtils.getAccessibleMethod(Map.class, "put", Object.class, Object.class);
             final Method setTrans = MethodUtils.getAccessibleMethod(Query.class, "setResultTransformer", ResultTransformer.class);
             final Variable alias2Properties = BeanGenerator.createVariable(scope, HashMap.class, "alias2Properties");

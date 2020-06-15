@@ -167,33 +167,37 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
             body.append(variable.invoke(toArray, BytecodeExpressions.newArray(ParameterizedType.type(methodReturnType.getComponentType()), 0)));
             body.retObject();
         } else {
-            final String resultMap = methodInfo.getResultMap();
-            final Class<?> resultType = methodInfo.getResultType();
-            if (StringUtils.isNotEmpty(resultMap)) {
-                body.append(registry.getMapBlock(resultMap, scope, query));
-                body.append(query.invoke("getSingleResult", java.lang.Object.class)
-                        .cast(registry.getMapClass(resultMap)));
-                body.retObject();
-            } else if (null != resultType) {
+            invokeSingle(methodInfo, methodReturnType, transformer, setTrans);
+        }
+    }
+
+    protected void invokeSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method transformer, Method setTrans) {
+        final String resultMap = methodInfo.getResultMap();
+        final Class<?> resultType = methodInfo.getResultType();
+        if (StringUtils.isNotEmpty(resultMap)) {
+            body.append(registry.getMapBlock(resultMap, scope, query));
+            body.append(query.invoke("getSingleResult", Object.class)
+                    .cast(registry.getMapClass(resultMap)));
+            body.retObject();
+        } else if (null != resultType) {
+            body.append(query.invoke(setTrans,
+                    BytecodeExpressions.invokeStatic(transformer,
+                            BytecodeExpressions.constantClass(resultType))));
+            body.append(query.invoke("getSingleResult", Object.class));
+            body.retObject();
+        } else {
+            if (!ClassUtils.isPrimitiveOrWrapper(methodReturnType) && !methodReturnType.equals(String.class)) {
                 body.append(query.invoke(setTrans,
                         BytecodeExpressions.invokeStatic(transformer,
-                                BytecodeExpressions.constantClass(resultType))));
-                body.append(query.invoke("getSingleResult", java.lang.Object.class));
-                body.retObject();
-            } else {
-                if (!ClassUtils.isPrimitiveOrWrapper(methodReturnType) && !methodReturnType.equals(String.class)) {
-                    body.append(query.invoke(setTrans,
-                            BytecodeExpressions.invokeStatic(transformer,
-                                    BytecodeExpressions.constantClass(methodReturnType))));
-                }
-                body.append(visitSingleReturnType(query.invoke("getSingleResult", java.lang.Object.class), methodReturnType));
-                body.ret(methodReturnType);
+                                BytecodeExpressions.constantClass(methodReturnType))));
             }
+            body.append(visitSingleReturnType(query.invoke("getSingleResult", Object.class), methodReturnType));
+            body.ret(methodReturnType);
         }
     }
 
     protected Variable invokeList(DaoMethodInfo methodInfo, Method transformer, Class<?> componentClass,
-                                  Method setTrans) throws NoSuchMethodException {
+                                  Method setTrans) {
         final String resultMap = methodInfo.getResultMap();
         final Class<?> resultType = methodInfo.getResultType();
         if (StringUtils.isNotEmpty(resultMap)) {
