@@ -12,10 +12,11 @@ import io.airlift.bytecode.expression.BytecodeExpressions;
 import me.zyee.hibatis.bytecode.DaoGenerator;
 import me.zyee.hibatis.dao.DaoInfo;
 import me.zyee.hibatis.dao.DaoMethodInfo;
-import org.apache.commons.lang3.ClassUtils;
+import me.zyee.hibatis.dao.registry.MapRegistry;
 import org.hibernate.Session;
 
 import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +26,10 @@ import java.util.Map;
  * Created by yee on 2020/6/12
  **/
 public class DefaultDaoVisitor {
-    private final DefaultDaoMethodVisitor methodVisitor;
+    private final Path out;
 
-    public DefaultDaoVisitor() {
-        this.methodVisitor = new DefaultDaoMethodVisitor();
+    public DefaultDaoVisitor(Path out) {
+        this.out = out;
     }
 
     /**
@@ -41,12 +42,12 @@ public class DefaultDaoVisitor {
      */
     public ClassDefinition visit(DaoInfo info) throws ClassNotFoundException, NoSuchMethodException {
         // dao 接口
-        final Class<?> inf = ClassUtils.getClass(info.getClassName());
+        final Class<?> inf = info.getId();
         // entity类型
-        final Class<?> entity = ClassUtils.getClass(info.getEntity());
+        final Class<?> entity = info.getEntity();
         // public final class TestDaoImpl
         ClassDefinition classDefinition = new ClassDefinition(Access.a(Access.PUBLIC, Access.FINAL),
-                DaoGenerator.makeClassName(inf.getPackage(), inf.getSimpleName() + "Impl"),
+                DaoGenerator.makeClassName(inf.getPackage().getName(), inf.getSimpleName() + "Impl"),
                 ParameterizedType.type(Object.class),
                 ParameterizedType.type(inf));
         // private Session session;
@@ -81,7 +82,12 @@ public class DefaultDaoVisitor {
                 throw new RuntimeException("Not found");
             }
             // 生成接口中的方法实现
-            methodVisitor.visit(classDefinition, method, infoMap.get(method.getName()));
+            DaoMethodInfo methodInfo = infoMap.get(method.getName());
+            if (methodInfo.isNativeSql()) {
+                new SQLMethodVisitor(classDefinition, method, methodInfo, MapRegistry.of(out, info)).visit();
+            } else {
+                new HQLMethodVisitor(classDefinition, method, methodInfo, MapRegistry.of(out, info)).visit();
+            }
         }
 
         // public static TestDaoImpl newInstance(Session session);

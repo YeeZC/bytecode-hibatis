@@ -3,6 +3,7 @@ package me.zyee.hibatis.dao;
 import me.zyee.hibatis.dao.annotation.Attr;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yee
@@ -10,18 +11,12 @@ import java.util.List;
  **/
 public class DaoInfo {
     @Attr(value = "id", require = true)
-    private String className;
+    private Class<?> id;
     @Attr(value = "entity", require = true)
-    private String entity;
+    private Class<?> entity;
     private List<DaoMethodInfo> methodInfos;
+    private List<DaoMapInfo> maps;
 
-    public String getClassName() {
-        return className;
-    }
-
-    public void setClassName(String className) {
-        this.className = className;
-    }
 
     public List<DaoMethodInfo> getMethodInfos() {
         return methodInfos;
@@ -31,11 +26,40 @@ public class DaoInfo {
         this.methodInfos = methodInfos;
     }
 
-    public String getEntity() {
+    public Class<?> getId() {
+        return id;
+    }
+
+    public void setId(Class<?> id) {
+        this.id = id;
+    }
+
+    public Class<?> getEntity() {
         return entity;
     }
 
-    public void setEntity(String entity) {
+    public void setEntity(Class<?> entity) {
         this.entity = entity;
+    }
+
+    public List<DaoMapInfo> getMaps() {
+        return maps;
+    }
+
+    public void setMaps(List<DaoMapInfo> maps) {
+        this.maps = maps;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DaoInfo daoInfo = (DaoInfo) o;
+        return Objects.equals(id, daoInfo.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
