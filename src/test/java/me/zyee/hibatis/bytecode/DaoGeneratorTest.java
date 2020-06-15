@@ -7,7 +7,6 @@ import org.hibernate.cfg.Configuration;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * @author yee
@@ -107,7 +106,7 @@ public class DaoGeneratorTest {
         // 5 构建HiBatisTemplate
         final HiBatisTemplate template = templateFactory.createTemplate();
         // 6 执行对应的方法
-        final List testEntities = template.runTx(TestDao.class, ((session, testDao) -> testDao.findNativeAll()));
+        final Object testEntities = template.runTx(TestDao.class, ((session, testDao) -> testDao.findAll()));
         System.out.println(testEntities);
 //        final InputStream resourceAsStream = Class.class.getResourceAsStream("/TestDao.xml");
 //        final DaoInfo parse = DomParser.parse(resourceAsStream);

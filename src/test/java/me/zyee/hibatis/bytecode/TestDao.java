@@ -10,7 +10,7 @@ import java.util.List;
  * Created by yee on 2020/6/11
  */
 public interface TestDao {
-    List<TestEntity> findAll();
+    List findAll();
 
     List findNativeAll();
 
