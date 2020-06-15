@@ -11,8 +11,9 @@ import org.hibernate.service.ServiceRegistry;
 
 /**
  * @author yee
- * Created by yee on 2020/6/12
- **/
+ * @version 1.0
+ * Create by yee on 2020/6/15
+ */
 public class DefaultTemplateFactory implements TemplateFactory {
     private final Configuration configuration;
     private final DaoRegistry registry;

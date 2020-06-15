@@ -1,7 +1,9 @@
 package me.zyee.hibatis.parser;
 
 import me.zyee.hibatis.dao.DaoInfo;
+import me.zyee.hibatis.dao.DaoMapInfo;
 import me.zyee.hibatis.dao.DaoMethodInfo;
+import me.zyee.hibatis.dao.DaoProperty;
 import me.zyee.hibatis.dao.MethodType;
 import me.zyee.hibatis.dao.annotation.Attr;
 import me.zyee.hibatis.dao.annotation.Children;
@@ -28,6 +30,7 @@ public class DomParser {
     private static final String UPDATE = "update";
     private static final String INSERT = "insert";
     private static final String DELETE = "delete";
+    private static final String MAP = "map";
 
     /**
      * TODO 自定义异常
@@ -47,6 +50,7 @@ public class DomParser {
                 List<Element> elements = root.elements();
                 DaoInfo daoInfo = readAttributes(root, new DaoInfo());
                 daoInfo.setMethodInfos(new ArrayList<>());
+                daoInfo.setMaps(new ArrayList<>());
                 for (Element element : elements) {
                     String name = element.getName();
                     switch (name) {
@@ -63,6 +67,16 @@ public class DomParser {
                             // 解析insert 因为 hibernate 通过 hql 没办法插入，只能通过原生sql插入
                             parseMethod(daoInfo, element, MethodType.MODIFY, true);
                             break;
+                        case MAP: {
+                            DaoMapInfo mapInfo = readAttributes(element, new DaoMapInfo());
+                            List<DaoProperty> properties = new ArrayList<>();
+                            for (Element e : element.elements()) {
+                                properties.add(readAttributes(e, new DaoProperty()));
+                            }
+                            mapInfo.setProperties(properties);
+                            daoInfo.getMaps().add(mapInfo);
+                            break;
+                        }
                         default:
                     }
                 }
@@ -122,6 +136,8 @@ public class DomParser {
                     FieldUtils.writeField(field, property, Boolean.parseBoolean(attribute.getStringValue()), true);
                 } else if (ClassUtils.isAssignable(String.class, type)) {
                     FieldUtils.writeField(field, property, attribute.getStringValue(), true);
+                } else if (ClassUtils.isAssignable(Class.class, type)) {
+                    FieldUtils.writeField(field, property, ClassUtils.getClass(attribute.getStringValue()), true);
                 } else {
                     FieldUtils.writeField(field, property, attribute.getStringValue(), true);
                 }

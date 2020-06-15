@@ -7,7 +7,6 @@ import io.airlift.bytecode.DynamicClassLoader;
 import io.airlift.bytecode.ParameterizedType;
 import me.zyee.hibatis.bytecode.impl.DefaultDaoVisitor;
 import me.zyee.hibatis.dao.DaoInfo;
-import org.apache.commons.lang3.ClassUtils;
 
 import java.nio.file.Path;
 import java.util.Collections;
@@ -30,16 +29,13 @@ public class DaoGenerator {
      * @throws NoSuchMethodException
      */
     public static Class<?> generate(DaoInfo info, Path out) throws ClassNotFoundException, NoSuchMethodException {
-        // dao 接口
-        final Class<?> inf = ClassUtils.getClass(info.getClassName());
-
         // 动态字节码生成的classLoader
         final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(DaoGenerator.class.getClassLoader()
                 , Collections.emptyMap());
         // 实体类的描述
-        final ClassDefinition visit = new DefaultDaoVisitor().visit(info);
+        final ClassDefinition visit = new DefaultDaoVisitor(out).visit(info);
         // 生成方法
-        return ClassGenerator.classGenerator(dynamicClassLoader).dumpClassFilesTo(Optional.ofNullable(out)).defineClass(visit, inf);
+        return ClassGenerator.classGenerator(dynamicClassLoader).dumpClassFilesTo(Optional.ofNullable(out)).defineClass(visit, info.getId());
     }
 
     public static Class<?> generate(DaoInfo info) throws ClassNotFoundException, NoSuchMethodException {
@@ -49,13 +45,12 @@ public class DaoGenerator {
     /**
      * 构造Dao实体类的类型
      *
-     * @param pk
+     * @param packageName
      * @param className
      * @return
      */
-    public static ParameterizedType makeClassName(Package pk, String className) {
-        final String name = pk.getName();
-        final String string = BytecodeUtils.toJavaIdentifierString(className + "$" + System.currentTimeMillis());
-        return ParameterizedType.typeFromJavaClassName(name + ".$gen.impl." + string);
+    public static ParameterizedType makeClassName(String packageName, String className) {
+        final String string = BytecodeUtils.toJavaIdentifierString(className + "_" + System.currentTimeMillis());
+        return ParameterizedType.typeFromJavaClassName(packageName + ".$gen.impl." + string);
     }
 }

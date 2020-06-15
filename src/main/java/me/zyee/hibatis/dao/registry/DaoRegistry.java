@@ -2,7 +2,6 @@ package me.zyee.hibatis.dao.registry;
 
 import me.zyee.hibatis.bytecode.DaoGenerator;
 import me.zyee.hibatis.dao.DaoInfo;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.hibernate.Session;
 import org.slf4j.Logger;
@@ -21,19 +20,15 @@ public class DaoRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DaoRegistry.class);
 
     public void addDao(DaoInfo dao) {
-        try {
-            final Class<?> aClass = ClassUtils.getClass(dao.getClassName());
-            container.put(aClass, LazyGet.of(() -> {
-                try {
-                    return DaoGenerator.generate(dao);
-                } catch (Exception e) {
-                    LOGGER.error("generate error", e);
-                    throw new RuntimeException(e);
-                }
-            }));
-        } catch (Exception e) {
-            LOGGER.error("parse error", e);
-        }
+        final Class<?> inf = dao.getId();
+        container.put(inf, LazyGet.of(() -> {
+            try {
+                return DaoGenerator.generate(dao);
+            } catch (Exception e) {
+                LOGGER.error("generate error", e);
+                throw new RuntimeException(e);
+            }
+        }));
     }
 
     public <T> T getDao(Class<T> daoClass, Session session) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {

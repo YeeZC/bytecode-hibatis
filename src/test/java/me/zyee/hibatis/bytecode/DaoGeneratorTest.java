@@ -107,8 +107,11 @@ public class DaoGeneratorTest {
         // 5 构建HiBatisTemplate
         final HiBatisTemplate template = templateFactory.createTemplate();
         // 6 执行对应的方法
-        final List<TestEntity> testEntities = template.runTx(TestDao.class, ((session, testDao) -> testDao.findAll()));
+        final List testEntities = template.runTx(TestDao.class, ((session, testDao) -> testDao.findNativeAll()));
         System.out.println(testEntities);
+//        final InputStream resourceAsStream = Class.class.getResourceAsStream("/TestDao.xml");
+//        final DaoInfo parse = DomParser.parse(resourceAsStream);
+//        final Class<?> generate = DaoGenerator.generate(parse, Paths.get("/Users/yee/test"));
     }
 
     private Configuration getConfiguration() {
@@ -124,4 +127,7 @@ public class DaoGeneratorTest {
         return configuration;
     }
 
+    public static final class Test2q1 {
+
+    }
 }
