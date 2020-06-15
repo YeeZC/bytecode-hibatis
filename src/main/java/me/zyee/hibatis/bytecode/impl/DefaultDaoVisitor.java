@@ -84,9 +84,9 @@ public class DefaultDaoVisitor {
             // 生成接口中的方法实现
             DaoMethodInfo methodInfo = infoMap.get(method.getName());
             if (methodInfo.isNativeSql()) {
-                new SQLMethodVisitor(classDefinition, method, methodInfo, MapRegistry.of(out, info)).visit();
+                new SQLMethodVisitor(classDefinition, method, methodInfo, MapRegistry.of(info)).visit();
             } else {
-                new HQLMethodVisitor(classDefinition, method, methodInfo, MapRegistry.of(out, info)).visit();
+                new HQLMethodVisitor(classDefinition, method, methodInfo, MapRegistry.of(info)).visit();
             }
         }
 

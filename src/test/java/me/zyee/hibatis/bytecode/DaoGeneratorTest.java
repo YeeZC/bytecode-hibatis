@@ -111,7 +111,7 @@ public class DaoGeneratorTest {
         System.out.println(testEntities);
 //        final InputStream resourceAsStream = Class.class.getResourceAsStream("/TestDao.xml");
 //        final DaoInfo parse = DomParser.parse(resourceAsStream);
-//        final Class<?> generate = DaoGenerator.generate(parse, Paths.get("/Users/yee/test"));
+//        final Class<?> generate = DaoGenerator.generate(parse, Paths.get("/Users/yee/work/tmp"));
     }
 
     private Configuration getConfiguration() {
