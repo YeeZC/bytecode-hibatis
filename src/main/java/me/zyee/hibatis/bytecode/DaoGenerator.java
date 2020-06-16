@@ -36,7 +36,7 @@ public class DaoGenerator {
         final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(DaoGenerator.class.getClassLoader()
                 , Collections.emptyMap());
         // 实体类的描述
-        final ClassDefinition visit = new DefaultDaoVisitor(out).visit(info);
+        final ClassDefinition visit = new DefaultDaoVisitor().visit(info);
         // 生成方法
         return ClassGenerator.classGenerator(dynamicClassLoader).dumpClassFilesTo(Optional.ofNullable(out)).defineClass(visit, info.getId());
     }
@@ -48,13 +48,13 @@ public class DaoGenerator {
     /**
      * 构造Dao实体类的类型
      *
-     * @param packageName
+     * @param prefix
      * @param className
      * @return
      */
-    public static ParameterizedType makeClassName(String packageName, String className) {
+    public static ParameterizedType makeClassName(String prefix, String className) {
         final String string = BytecodeUtils.toJavaIdentifierString(className + "_" + System.currentTimeMillis());
-        return ParameterizedType.typeFromJavaClassName(packageName + ".$gen.impl." + string);
+        return ParameterizedType.typeFromJavaClassName("me.zyee.hibatis.binding.gen." + prefix + "." + string);
     }
 
     public static Variable createVariable(Scope scope, Class<?> clazz, String name) {

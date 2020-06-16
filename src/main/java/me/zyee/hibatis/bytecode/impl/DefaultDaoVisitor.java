@@ -16,7 +16,6 @@ import me.zyee.hibatis.dao.registry.MapRegistry;
 import org.hibernate.Session;
 
 import java.lang.reflect.Method;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,11 +25,6 @@ import java.util.Map;
  * Created by yee on 2020/6/12
  **/
 public class DefaultDaoVisitor {
-    private final Path out;
-
-    public DefaultDaoVisitor(Path out) {
-        this.out = out;
-    }
 
     /**
      * 将DaoInfo转成ClassDefinition 结果用于生成实体Dao类
@@ -47,7 +41,7 @@ public class DefaultDaoVisitor {
         final Class<?> entity = info.getEntity();
         // public final class TestDaoImpl
         ClassDefinition classDefinition = new ClassDefinition(Access.a(Access.PUBLIC, Access.FINAL),
-                DaoGenerator.makeClassName(inf.getPackage().getName(), inf.getSimpleName() + "Impl"),
+                DaoGenerator.makeClassName("dao", inf.getSimpleName()),
                 ParameterizedType.type(Object.class),
                 ParameterizedType.type(inf));
         // private Session session;
