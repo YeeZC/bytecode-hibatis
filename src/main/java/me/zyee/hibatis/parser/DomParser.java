@@ -8,13 +8,17 @@ import me.zyee.hibatis.dao.MethodType;
 import me.zyee.hibatis.dao.annotation.Attr;
 import me.zyee.hibatis.dao.annotation.Children;
 import me.zyee.hibatis.dao.annotation.Content;
+import me.zyee.hibatis.exception.HibatisAttrAbsentException;
+import me.zyee.hibatis.exception.HibatisXmlIllegalException;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -33,14 +37,13 @@ public class DomParser {
     private static final String MAP = "map";
 
     /**
-     * TODO 自定义异常
      * 解析xml成DaoInfo
      *
      * @param dom xml的inputstream
      * @return 返回解析后的DaoInfo
      * @throws Exception 解析异常
      */
-    public static DaoInfo parse(InputStream dom) throws Exception {
+    public static DaoInfo parse(InputStream dom) {
         try (InputStream is = dom) {
             SAXReader reader = new SAXReader();
             Document document = reader.read(is);
@@ -83,24 +86,30 @@ public class DomParser {
                 check(daoInfo);
                 return daoInfo;
             } else {
-                throw new Exception();
+                throw new HibatisXmlIllegalException();
             }
 
+        } catch (IOException | DocumentException e) {
+            throw new HibatisXmlIllegalException(e);
         }
     }
 
 
-    private static void parseMethod(DaoInfo dao, Element element, MethodType type, boolean nativeSql) throws Exception {
+    private static void parseMethod(DaoInfo dao, Element element, MethodType type, boolean nativeSql) {
 
         final DaoMethodInfo method = readAttributes(element, new DaoMethodInfo());
         method.setType(type);
         final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(DaoMethodInfo.class, Content.class);
         if (fields.size() != 1) {
-            throw new Exception();
+            throw new HibatisXmlIllegalException(element.asXML());
         }
-        FieldUtils.writeField(fields.get(0), method, element.getStringValue(), true);
-        if (null == method.isNativeSql()) {
-            method.setNativeSql(nativeSql);
+        try {
+            FieldUtils.writeField(fields.get(0), method, element.getStringValue(), true);
+            if (null == method.isNativeSql()) {
+                method.setNativeSql(nativeSql);
+            }
+        } catch (IllegalAccessException e) {
+            throw new HibatisXmlIllegalException(element.asXML(), e);
         }
         check(method);
         dao.getMethodInfos().add(method);
@@ -115,68 +124,70 @@ public class DomParser {
      * @return
      * @throws Exception
      */
-    private static <T> T readAttributes(Element child, T property) throws Exception {
+    private static <T> T readAttributes(Element child, T property) {
         final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(property.getClass(), Attr.class);
         for (Field field : fields) {
             final Attr attr = field.getAnnotation(Attr.class);
             final Attribute attribute = child.attribute(attr.value());
             if (null == attribute) {
                 if (attr.require()) {
-                    throw new Exception("Attribute " + attr.value() + " is require");
+                    throw new HibatisAttrAbsentException(attr.value());
                 }
             } else {
                 final Class<?> type = field.getType();
-                if (ClassUtils.isAssignable(int.class, type)) {
-                    FieldUtils.writeField(field, property, Integer.parseInt(attribute.getStringValue()), true);
-                } else if (ClassUtils.isAssignable(long.class, type)) {
-                    FieldUtils.writeField(field, property, Long.parseLong(attribute.getStringValue()), true);
-                } else if (ClassUtils.isAssignable(double.class, type)) {
-                    FieldUtils.writeField(field, property, Double.parseDouble(attribute.getStringValue()), true);
-                } else if (ClassUtils.isAssignable(boolean.class, type)) {
-                    FieldUtils.writeField(field, property, Boolean.parseBoolean(attribute.getStringValue()), true);
-                } else if (ClassUtils.isAssignable(String.class, type)) {
-                    FieldUtils.writeField(field, property, attribute.getStringValue(), true);
-                } else if (ClassUtils.isAssignable(Class.class, type)) {
-                    FieldUtils.writeField(field, property, ClassUtils.getClass(attribute.getStringValue()), true);
-                } else {
-                    FieldUtils.writeField(field, property, attribute.getStringValue(), true);
+                try {
+                    if (ClassUtils.isAssignable(int.class, type)) {
+                        FieldUtils.writeField(field, property, Integer.parseInt(attribute.getStringValue()), true);
+                    } else if (ClassUtils.isAssignable(long.class, type)) {
+                        FieldUtils.writeField(field, property, Long.parseLong(attribute.getStringValue()), true);
+                    } else if (ClassUtils.isAssignable(double.class, type)) {
+                        FieldUtils.writeField(field, property, Double.parseDouble(attribute.getStringValue()), true);
+                    } else if (ClassUtils.isAssignable(boolean.class, type)) {
+                        FieldUtils.writeField(field, property, Boolean.parseBoolean(attribute.getStringValue()), true);
+                    } else if (ClassUtils.isAssignable(String.class, type)) {
+                        FieldUtils.writeField(field, property, attribute.getStringValue(), true);
+                    } else if (ClassUtils.isAssignable(Class.class, type)) {
+                        FieldUtils.writeField(field, property, ClassUtils.getClass(attribute.getStringValue()), true);
+                    } else {
+                        FieldUtils.writeField(field, property, attribute.getStringValue(), true);
+                    }
+                } catch (IllegalAccessException | ClassNotFoundException ignore) {
                 }
-
             }
         }
         return property;
     }
 
-    private static void check(Object dao) throws Exception {
+    private static void check(Object dao) {
         final Class<?> aClass = dao.getClass();
         final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(aClass, Attr.class);
-        for (Field field : fields) {
-            final Attr attr = field.getAnnotation(Attr.class);
-            if (attr.require()) {
-                final Object o = FieldUtils.readField(field, dao, true);
-                if (o == null) {
-                    throw new Exception("Property " + attr.value() + " is require");
+        try {
+            for (Field field : fields) {
+                final Attr attr = field.getAnnotation(Attr.class);
+                if (attr.require()) {
+                    final Object o = FieldUtils.readField(field, dao, true);
+                    if (o == null) {
+                        throw new HibatisAttrAbsentException(attr.value());
+                    }
                 }
             }
+            final List<Field> contents = FieldUtils.getFieldsListWithAnnotation(aClass, Content.class);
+            checkSingleField(dao, contents);
+            final List<Field> children = FieldUtils.getFieldsListWithAnnotation(aClass, Children.class);
+            checkSingleField(dao, children);
+        } catch (IllegalAccessException e) {
+            throw new HibatisXmlIllegalException(e);
         }
-        final List<Field> contents = FieldUtils.getFieldsListWithAnnotation(aClass, Content.class);
+    }
+
+    private static void checkSingleField(Object dao, List<Field> contents) throws IllegalAccessException {
         if (contents.size() > 1) {
-            throw new Exception("Content more then one");
+            throw new HibatisXmlIllegalException();
         }
         if (!contents.isEmpty()) {
             final Object o = FieldUtils.readField(contents.get(0), dao, true);
             if (o == null) {
-                throw new Exception("Content is require");
-            }
-        }
-        final List<Field> children = FieldUtils.getFieldsListWithAnnotation(aClass, Children.class);
-        if (children.size() > 1) {
-            throw new Exception("Children more then one");
-        }
-        if (!children.isEmpty()) {
-            final Object o = FieldUtils.readField(children.get(0), dao, true);
-            if (o == null) {
-                throw new Exception("Children is require");
+                throw new HibatisXmlIllegalException();
             }
         }
     }

@@ -54,8 +54,7 @@ public class DaoScanner {
                 for (File file : matches) {
                     try {
                         result.add(DomParser.parse(new FileInputStream(file)));
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    } catch (Exception ignore) {
                     }
                 }
                 return result;
@@ -125,8 +124,7 @@ public class DaoScanner {
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignore) {
         }
 
         return result;
