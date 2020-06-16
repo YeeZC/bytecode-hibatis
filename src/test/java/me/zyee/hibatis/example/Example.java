@@ -18,7 +18,7 @@ import java.util.List;
 public class Example {
     public static void main(String[] args) {
         final HiBatisConfig hiBatisConfig = new HiBatisConfig();
-        hiBatisConfig.setDaoXmlScanPath("dao");
+        hiBatisConfig.setXmlPattern("*Dao.xml");
         hiBatisConfig.setConfiguration(getConfiguration());
         final TemplateFactory templateFactory = hiBatisConfig.buildTemplateFactory();
         final HiBatisTemplate template = templateFactory.createTemplate();

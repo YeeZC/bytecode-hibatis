@@ -1,13 +1,11 @@
 package me.zyee.hibatis.config;
 
-import me.zyee.hibatis.dao.DaoInfo;
 import me.zyee.hibatis.dao.registry.DaoRegistry;
 import me.zyee.hibatis.dao.scaner.DaoScanner;
 import me.zyee.hibatis.template.factory.TemplateFactory;
 import me.zyee.hibatis.template.factory.impl.DefaultTemplateFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.cfg.Configuration;
-
-import java.util.List;
 
 /**
  * @author yee
@@ -21,7 +19,9 @@ public class HiBatisConfig {
     /**
      * dao xml的扫描路径
      */
-    private String daoXmlScanPath;
+    private String scanPath;
+
+    private String xmlPattern;
 
     public Configuration getConfiguration() {
         return configuration;
@@ -31,18 +31,27 @@ public class HiBatisConfig {
         this.configuration = configuration;
     }
 
-    public String getDaoXmlScanPath() {
-        return daoXmlScanPath;
+    public String getScanPath() {
+        return scanPath;
     }
 
-    public void setDaoXmlScanPath(String daoXmlScanPath) {
-        this.daoXmlScanPath = daoXmlScanPath;
+    public void setScanPath(String scanPath) {
+        this.scanPath = scanPath;
+    }
+
+    public String getXmlPattern() {
+        return xmlPattern;
+    }
+
+    public void setXmlPattern(String xmlPattern) {
+        this.xmlPattern = xmlPattern;
     }
 
     /**
      * 1 搜索dao.xml
      * 2 初始化registry
      * 3 初始化TemplateFactory
+     *
      * @return
      */
     public TemplateFactory buildTemplateFactory() {
@@ -50,10 +59,10 @@ public class HiBatisConfig {
             throw new RuntimeException("Configuration must be null");
         }
         final DaoRegistry daoRegistry = new DaoRegistry();
-        if (null != daoXmlScanPath) {
-            final List<DaoInfo> scan = DaoScanner.scan(daoXmlScanPath);
-            scan.forEach(daoRegistry::addDao);
+        if (null == scanPath) {
+            scanPath = StringUtils.EMPTY;
         }
+        DaoScanner.scan(scanPath, xmlPattern).forEach(daoRegistry::addDao);
         return new DefaultTemplateFactory(configuration, daoRegistry);
     }
 }
