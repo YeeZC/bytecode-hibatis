@@ -8,6 +8,8 @@ import me.zyee.hibatis.bytecode.DaoGenerator;
 import me.zyee.hibatis.dao.DaoInfo;
 import me.zyee.hibatis.dao.DaoMapInfo;
 import me.zyee.hibatis.dao.DaoProperty;
+import me.zyee.hibatis.exception.ByteCodeGenerateException;
+import me.zyee.hibatis.exception.HibatisNotFountException;
 import me.zyee.hibatis.transformer.HibatisResultTransformer;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.hibernate.query.Query;
@@ -63,11 +65,15 @@ public class MapRegistry {
         classSuppliers.put(mapInfo.getMapId(), () -> Optional.<Class<?>>ofNullable(mapInfo.getClassName()).orElse(HashMap.class));
     }
 
-    public BytecodeBlock getMapBlock(String mapId, Scope scope, boolean isHql) {
+    public BytecodeBlock getMapBlock(String mapId, Scope scope, boolean isHql) throws ByteCodeGenerateException {
         if (container.containsKey(mapId)) {
-            return container.get(mapId).get(scope, isHql);
+            try {
+                return container.get(mapId).get(scope, isHql);
+            } catch (Exception e) {
+                throw new ByteCodeGenerateException(e);
+            }
         }
-        throw new RuntimeException("Not found");
+        throw new ByteCodeGenerateException(new HibatisNotFountException("Map " + mapId + " not found"));
     }
 
     public Class<?> getMapClass(String mapId) {

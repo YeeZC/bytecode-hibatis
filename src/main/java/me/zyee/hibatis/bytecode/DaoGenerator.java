@@ -9,6 +9,7 @@ import io.airlift.bytecode.Scope;
 import io.airlift.bytecode.Variable;
 import me.zyee.hibatis.bytecode.impl.DefaultDaoVisitor;
 import me.zyee.hibatis.dao.DaoInfo;
+import me.zyee.hibatis.exception.ByteCodeGenerateException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
@@ -31,7 +32,7 @@ public class DaoGenerator {
      * @throws ClassNotFoundException
      * @throws NoSuchMethodException
      */
-    public static Class<?> generate(DaoInfo info, Path out) throws ClassNotFoundException, NoSuchMethodException {
+    public static Class<?> generate(DaoInfo info, Path out) throws ByteCodeGenerateException {
         // 动态字节码生成的classLoader
         final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(DaoGenerator.class.getClassLoader()
                 , Collections.emptyMap());
@@ -41,7 +42,7 @@ public class DaoGenerator {
         return ClassGenerator.classGenerator(dynamicClassLoader).dumpClassFilesTo(Optional.ofNullable(out)).defineClass(visit, info.getId());
     }
 
-    public static Class<?> generate(DaoInfo info) throws ClassNotFoundException, NoSuchMethodException {
+    public static Class<?> generate(DaoInfo info) throws ByteCodeGenerateException {
         return generate(info, null);
     }
 

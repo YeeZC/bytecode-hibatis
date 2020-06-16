@@ -1,5 +1,6 @@
 package me.zyee.hibatis.template;
 
+import me.zyee.hibatis.exception.HibatisException;
 import org.hibernate.Session;
 
 import java.io.Serializable;
@@ -29,12 +30,13 @@ public interface HiBatisTemplate {
 
     /**
      * 创建Dao对象
+     *
      * @param daoInf
      * @param session
      * @param <T>
      * @return
      */
-    <T> T createDao(Class<T> daoInf, Session session);
+    <T> T createDao(Class<T> daoInf, Session session) throws HibatisException;
 
     /**
      * 插入方法
@@ -234,11 +236,12 @@ public interface HiBatisTemplate {
     interface Process<T> {
         /**
          * 执行方法
+         *
          * @param session
          * @return
-         * @throws Exception
+         * @throws HibatisException
          */
-        T process(Session session) throws Exception;
+        T process(Session session) throws HibatisException;
     }
 
     /**
@@ -253,8 +256,8 @@ public interface HiBatisTemplate {
          * @param session hibernate session
          * @param dao     自定义的dao
          * @return
-         * @throws Exception
+         * @throws HibatisException
          */
-        Ret process(Dao dao, Session session) throws Exception;
+        Ret process(Dao dao, Session session) throws HibatisException;
     }
 }

@@ -16,6 +16,7 @@ import me.zyee.hibatis.dao.DaoMethodInfo;
 import me.zyee.hibatis.dao.MethodType;
 import me.zyee.hibatis.dao.annotation.Param;
 import me.zyee.hibatis.dao.registry.MapRegistry;
+import me.zyee.hibatis.exception.ByteCodeGenerateException;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hibernate.Session;
@@ -59,46 +60,50 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
         this.registry = registry;
     }
 
-    protected void setMapProperties(Parameter[] parameters) throws NoSuchMethodException, ClassNotFoundException {
-        if (parameters.length > 0) {
-            final Variable properties = scope.createTempVariable(Map.class);
-            body.append(properties.set(BytecodeExpressions.newInstance(ParameterizedType.type(HashMap.class),
-                    BytecodeExpressions.constantInt(parameters.length))));
-            final Method put = Map.class.getDeclaredMethod("put", java.lang.Object.class, java.lang.Object.class);
-            for (Parameter parameter : parameters) {
-                final String name = parameter.getName();
-                if (name.startsWith("var_")) {
-                    final String javaClassName = parameter.getType().getJavaClassName();
-                    final Class<?> aClass = ClassUtils.getClass(javaClassName);
-                    if (!ClassUtils.isPrimitiveOrWrapper(aClass) && !ClassUtils.isAssignable(String.class, aClass)) {
-                        final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(aClass, Param.class);
-                        final Method readField = FieldUtils.class.getDeclaredMethod("readField", java.lang.Object.class, String.class, boolean.class);
-                        for (Field field : fields) {
-                            final Param param = field.getAnnotation(Param.class);
+    protected void setMapProperties(Parameter[] parameters) throws ByteCodeGenerateException {
+        try {
+            if (parameters.length > 0) {
+                final Variable properties = scope.createTempVariable(Map.class);
+                body.append(properties.set(BytecodeExpressions.newInstance(ParameterizedType.type(HashMap.class),
+                        BytecodeExpressions.constantInt(parameters.length))));
+                final Method put = Map.class.getDeclaredMethod("put", java.lang.Object.class, java.lang.Object.class);
+                for (Parameter parameter : parameters) {
+                    final String name = parameter.getName();
+                    if (name.startsWith("var_")) {
+                        final String javaClassName = parameter.getType().getJavaClassName();
+                        final Class<?> aClass = ClassUtils.getClass(javaClassName);
+                        if (!ClassUtils.isPrimitiveOrWrapper(aClass) && !ClassUtils.isAssignable(String.class, aClass)) {
+                            final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(aClass, Param.class);
+                            final Method readField = FieldUtils.class.getDeclaredMethod("readField", java.lang.Object.class, String.class, boolean.class);
+                            for (Field field : fields) {
+                                final Param param = field.getAnnotation(Param.class);
+                                body.append(properties.invoke(put,
+                                        BytecodeExpressions.constantString(param.value()),
+                                        BytecodeExpressions.invokeStatic(readField, parameter,
+                                                BytecodeExpressions.constantString(field.getName()),
+                                                BytecodeExpressions.constantTrue())));
+                            }
+                        } else {
                             body.append(properties.invoke(put,
-                                    BytecodeExpressions.constantString(param.value()),
-                                    BytecodeExpressions.invokeStatic(readField, parameter,
-                                            BytecodeExpressions.constantString(field.getName()),
-                                            BytecodeExpressions.constantTrue())));
+                                    BytecodeExpressions.constantString(name.replace("var_", "")),
+                                    parameter));
                         }
+
                     } else {
                         body.append(properties.invoke(put,
-                                BytecodeExpressions.constantString(name.replace("var_", "")),
+                                BytecodeExpressions.constantString(name),
                                 parameter));
                     }
-
-                } else {
-                    body.append(properties.invoke(put,
-                            BytecodeExpressions.constantString(name),
-                            parameter));
                 }
+                body.append(query.invoke("setProperties", Query.class, properties));
             }
-            body.append(query.invoke("setProperties", Query.class, properties));
+        } catch (Exception e) {
+            throw new ByteCodeGenerateException(e);
         }
     }
 
     @Override
-    public MethodDefinition visit() throws NoSuchMethodException, ClassNotFoundException {
+    public MethodDefinition visit() throws ByteCodeGenerateException {
         final Parameter[] parameters = Stream.of(method.getParameters()).map(parameter -> {
             final Class<?> type = parameter.getType();
             final Param param = parameter.getAnnotation(Param.class);
@@ -153,18 +158,24 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
         }
     }
 
-    protected void visitSelect(DaoMethodInfo methodInfo, Class<?> methodReturnType) throws NoSuchMethodException {
-        Method setTrans = Query.class.getDeclaredMethod("setResultTransformer", ResultTransformer.class);
-        final Method toArray = List.class.getDeclaredMethod("toArray", java.lang.Object[].class);
-        if (ClassUtils.isAssignable(Collection.class, methodReturnType) || ClassUtils.isAssignable(methodReturnType, Collection.class)) {
-            final Variable variable = generateList(methodInfo, null, setTrans);
-            body.append(variable).retObject();
-        } else if (methodReturnType.isArray()) {
-            final Variable variable = generateList(methodInfo, methodReturnType.getComponentType(), setTrans);
-            body.append(variable.invoke(toArray, BytecodeExpressions.newArray(ParameterizedType.type(methodReturnType.getComponentType()), 0)));
-            body.retObject();
-        } else {
-            generateSingle(methodInfo, methodReturnType, setTrans);
+    protected void visitSelect(DaoMethodInfo methodInfo, Class<?> methodReturnType) throws ByteCodeGenerateException {
+        Method setTrans = null;
+        try {
+            setTrans = Query.class.getDeclaredMethod("setResultTransformer", ResultTransformer.class);
+
+            final Method toArray = List.class.getDeclaredMethod("toArray", java.lang.Object[].class);
+            if (ClassUtils.isAssignable(Collection.class, methodReturnType) || ClassUtils.isAssignable(methodReturnType, Collection.class)) {
+                final Variable variable = generateList(methodInfo, null, setTrans);
+                body.append(variable).retObject();
+            } else if (methodReturnType.isArray()) {
+                final Variable variable = generateList(methodInfo, methodReturnType.getComponentType(), setTrans);
+                body.append(variable.invoke(toArray, BytecodeExpressions.newArray(ParameterizedType.type(methodReturnType.getComponentType()), 0)));
+                body.retObject();
+            } else {
+                generateSingle(methodInfo, methodReturnType, setTrans);
+            }
+        } catch (NoSuchMethodException e) {
+            throw new ByteCodeGenerateException(e);
         }
     }
 
@@ -175,7 +186,7 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
      * @param methodReturnType
      * @param setTrans
      */
-    abstract protected void generateSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method setTrans);
+    abstract protected void generateSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method setTrans) throws ByteCodeGenerateException;
 
     /**
      * 生成List返回值
@@ -186,7 +197,7 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
      * @return
      */
     abstract protected Variable generateList(DaoMethodInfo methodInfo, Class<?> componentClass,
-                                             Method setTrans);
+                                             Method setTrans) throws ByteCodeGenerateException;
 
     /**
      * 创建查询Method

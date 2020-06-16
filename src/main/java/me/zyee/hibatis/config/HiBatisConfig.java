@@ -2,6 +2,7 @@ package me.zyee.hibatis.config;
 
 import me.zyee.hibatis.dao.registry.DaoRegistry;
 import me.zyee.hibatis.dao.scaner.DaoScanner;
+import me.zyee.hibatis.exception.HibatisException;
 import me.zyee.hibatis.template.factory.TemplateFactory;
 import me.zyee.hibatis.template.factory.impl.DefaultTemplateFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -54,9 +55,9 @@ public class HiBatisConfig {
      *
      * @return
      */
-    public TemplateFactory buildTemplateFactory() {
+    public TemplateFactory buildTemplateFactory() throws HibatisException {
         if (null == configuration) {
-            throw new RuntimeException("Configuration must be null");
+            throw new HibatisException("Configuration not found");
         }
         final DaoRegistry daoRegistry = new DaoRegistry();
         if (null == scanPath) {

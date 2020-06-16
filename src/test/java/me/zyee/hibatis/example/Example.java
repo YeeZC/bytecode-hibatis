@@ -3,6 +3,7 @@ package me.zyee.hibatis.example;
 import me.zyee.hibatis.bytecode.TestDao;
 import me.zyee.hibatis.bytecode.TestEntity;
 import me.zyee.hibatis.config.HiBatisConfig;
+import me.zyee.hibatis.exception.HibatisException;
 import me.zyee.hibatis.template.HiBatisTemplate;
 import me.zyee.hibatis.template.factory.TemplateFactory;
 import org.hibernate.cfg.Configuration;
@@ -15,7 +16,7 @@ import java.io.File;
  * Create by yee on 2020/6/16
  */
 public class Example {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws HibatisException {
         final HiBatisConfig hiBatisConfig = new HiBatisConfig();
         hiBatisConfig.setXmlPattern("*Dao.xml");
         hiBatisConfig.setConfiguration(getConfiguration());

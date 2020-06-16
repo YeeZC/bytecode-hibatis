@@ -6,6 +6,7 @@ import io.airlift.bytecode.expression.BytecodeExpressions;
 import me.zyee.hibatis.bytecode.DaoGenerator;
 import me.zyee.hibatis.dao.DaoMethodInfo;
 import me.zyee.hibatis.dao.registry.MapRegistry;
+import me.zyee.hibatis.exception.ByteCodeGenerateException;
 import me.zyee.hibatis.transformer.HibatisReturnClassTransformer;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +29,7 @@ public class SQLMethodVisitor extends BaseMethodVisitor {
     }
 
     @Override
-    protected void generateSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method setTrans) {
+    protected void generateSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method setTrans) throws ByteCodeGenerateException {
         final String resultMap = methodInfo.getResultMap();
         final Class<?> resultType = methodInfo.getResultType();
         if (StringUtils.isNotEmpty(resultMap)) {
@@ -54,7 +55,7 @@ public class SQLMethodVisitor extends BaseMethodVisitor {
     }
 
     @Override
-    protected Variable generateList(DaoMethodInfo methodInfo, Class<?> componentClass, Method setTrans) {
+    protected Variable generateList(DaoMethodInfo methodInfo, Class<?> componentClass, Method setTrans) throws ByteCodeGenerateException {
         final String resultMap = methodInfo.getResultMap();
         final Class<?> resultType = methodInfo.getResultType();
         if (StringUtils.isNotEmpty(resultMap)) {

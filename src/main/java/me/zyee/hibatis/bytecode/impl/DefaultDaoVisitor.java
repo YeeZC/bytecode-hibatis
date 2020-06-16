@@ -13,6 +13,8 @@ import me.zyee.hibatis.bytecode.DaoGenerator;
 import me.zyee.hibatis.dao.DaoInfo;
 import me.zyee.hibatis.dao.DaoMethodInfo;
 import me.zyee.hibatis.dao.registry.MapRegistry;
+import me.zyee.hibatis.exception.ByteCodeGenerateException;
+import me.zyee.hibatis.exception.HibatisNotFountException;
 import org.hibernate.Session;
 
 import java.lang.reflect.Method;
@@ -31,10 +33,9 @@ public class DefaultDaoVisitor {
      *
      * @param info
      * @return
-     * @throws ClassNotFoundException
-     * @throws NoSuchMethodException
+     * @throws ByteCodeGenerateException
      */
-    public ClassDefinition visit(DaoInfo info) throws ClassNotFoundException, NoSuchMethodException {
+    public ClassDefinition visit(DaoInfo info) throws ByteCodeGenerateException {
         // dao 接口
         final Class<?> inf = info.getId();
         // entity类型
@@ -73,7 +74,7 @@ public class DefaultDaoVisitor {
         for (Method method : inf.getDeclaredMethods()) {
             // 接口中待实现的方法没有实现
             if (!infoMap.containsKey(method.getName())) {
-                throw new RuntimeException("Not found");
+                throw new ByteCodeGenerateException(new HibatisNotFountException("Method " + method.getName() + " not found"));
             }
             // 生成接口中的方法实现
             DaoMethodInfo methodInfo = infoMap.get(method.getName());

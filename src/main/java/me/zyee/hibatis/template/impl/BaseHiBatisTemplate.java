@@ -1,6 +1,7 @@
 package me.zyee.hibatis.template.impl;
 
 import me.zyee.hibatis.dao.registry.DaoRegistry;
+import me.zyee.hibatis.exception.HibatisException;
 import me.zyee.hibatis.template.HiBatisTemplate;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hibernate.Session;
@@ -63,12 +64,12 @@ public class BaseHiBatisTemplate implements HiBatisTemplate {
     }
 
     @Override
-    public <T> T createDao(Class<T> daoInf, Session session) {
+    public <T> T createDao(Class<T> daoInf, Session session) throws HibatisException {
         try {
             return registry.getDao(daoInf, session);
         } catch (Exception e) {
             LOGGER.error("get Dao error", e);
-            throw new RuntimeException(e);
+            throw new HibatisException(e);
         }
     }
 

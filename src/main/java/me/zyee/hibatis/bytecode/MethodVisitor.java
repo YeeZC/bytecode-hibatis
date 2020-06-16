@@ -1,6 +1,7 @@
 package me.zyee.hibatis.bytecode;
 
 import io.airlift.bytecode.MethodDefinition;
+import me.zyee.hibatis.exception.ByteCodeGenerateException;
 
 /**
  * @author yee
@@ -8,5 +9,5 @@ import io.airlift.bytecode.MethodDefinition;
  * Create by yee on 2020/6/15
  */
 public interface MethodVisitor {
-    MethodDefinition visit() throws NoSuchMethodException, ClassNotFoundException;
+    MethodDefinition visit() throws ByteCodeGenerateException;
 }

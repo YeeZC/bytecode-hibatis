@@ -2,12 +2,13 @@ package me.zyee.hibatis.dao.registry;
 
 import me.zyee.hibatis.bytecode.DaoGenerator;
 import me.zyee.hibatis.dao.DaoInfo;
+import me.zyee.hibatis.exception.ByteCodeGenerateException;
+import me.zyee.hibatis.exception.HibatisNotFountException;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,12 +32,16 @@ public class DaoRegistry {
         }));
     }
 
-    public <T> T getDao(Class<T> daoClass, Session session) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public <T> T getDao(Class<T> daoClass, Session session) throws ByteCodeGenerateException {
         if (container.containsKey(daoClass)) {
-            final Class<?> cls = container.get(daoClass).get();
-            return daoClass.cast(MethodUtils.invokeStaticMethod(cls, "newInstance", session));
+            try {
+                final Class<?> cls = container.get(daoClass).get();
+                return daoClass.cast(MethodUtils.invokeStaticMethod(cls, "newInstance", session));
+            } catch (Exception e) {
+                throw new ByteCodeGenerateException(e);
+            }
         }
-        throw new RuntimeException("Not found");
+        throw new ByteCodeGenerateException(new HibatisNotFountException("Instanse for Dao " + daoClass + " not found"));
     }
 
 }
