@@ -1,12 +1,12 @@
 package me.zyee.hibatis.bytecode;
 
-import me.zyee.hibatis.config.HiBatisConfig;
-import me.zyee.hibatis.template.HiBatisTemplate;
-import me.zyee.hibatis.template.factory.TemplateFactory;
-import org.hibernate.cfg.Configuration;
+import me.zyee.hibatis.dao.DaoInfo;
+import me.zyee.hibatis.parser.DomParser;
+import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Paths;
 
 /**
  * @author yee
@@ -94,39 +94,10 @@ public class DaoGeneratorTest {
      */
     @Test
     public void generate() throws Exception {
-        // 1 构造原生hibernate 的Configuration
-        final Configuration configuration = getConfiguration();
-        // 2 构造HiBatisConfig
-        final HiBatisConfig hiBatisConfig = new HiBatisConfig();
-        hiBatisConfig.setConfiguration(configuration);
-        // 3 设置xml的查找路径
-        hiBatisConfig.setDaoXmlScanPath("");
-        // 4 构建TemplateFactory
-        final TemplateFactory templateFactory = hiBatisConfig.buildTemplateFactory();
-        // 5 构建HiBatisTemplate
-        final HiBatisTemplate template = templateFactory.createTemplate();
-        // 6 执行对应的方法
-        final Object testEntities = template.runTx(TestDao.class, ((session, testDao) -> testDao.findAll()));
-        System.out.println(testEntities);
-//        final InputStream resourceAsStream = Class.class.getResourceAsStream("/TestDao.xml");
-//        final DaoInfo parse = DomParser.parse(resourceAsStream);
-//        final Class<?> generate = DaoGenerator.generate(parse, Paths.get("/Users/yee/work/tmp"));
+        final InputStream resourceAsStream = Class.class.getResourceAsStream("/dao/TestDao.xml");
+        final DaoInfo parse = DomParser.parse(resourceAsStream);
+        final Class<?> generate = DaoGenerator.generate(parse, Paths.get("/Users/yee/work/tmp"));
+        Assert.assertNotNull(generate);
     }
 
-    private Configuration getConfiguration() {
-        Configuration configuration = new Configuration();
-        File confFile = new File("hibernate.cfg.xml");
-        if (confFile.exists()) {
-            configuration.configure(confFile);
-        } else {
-            configuration.configure("hibernate.cfg.xml");
-        }
-
-        configuration.addAnnotatedClass(TestEntity.class);
-        return configuration;
-    }
-
-    public static final class Test2q1 {
-
-    }
 }

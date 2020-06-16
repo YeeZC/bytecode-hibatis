@@ -117,7 +117,7 @@ public interface HiBatisTemplate {
     default <Dao, T> T runTx(Class<Dao> daoClass, BiProcess<Dao, T> callable) {
         return runTx(session -> {
             final Dao dao = createDao(daoClass, session);
-            return callable.process(session, dao);
+            return callable.process(dao, session);
         });
     }
 
@@ -132,7 +132,7 @@ public interface HiBatisTemplate {
     default <Dao, T> T runNonTx(Class<Dao> daoClass, BiProcess<Dao, T> callable) {
         return runNonTx(session -> {
             final Dao dao = createDao(daoClass, session);
-            return callable.process(session, dao);
+            return callable.process(dao, session);
         });
     }
 
@@ -249,11 +249,12 @@ public interface HiBatisTemplate {
     interface BiProcess<Dao, Ret> {
         /**
          * 执行方法
+         *
          * @param session hibernate session
-         * @param dao 自定义的dao
+         * @param dao     自定义的dao
          * @return
          * @throws Exception
          */
-        Ret process(Session session, Dao dao) throws Exception;
+        Ret process(Dao dao, Session session) throws Exception;
     }
 }
