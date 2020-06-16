@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,7 +23,7 @@ public class DaoRegistry {
         final Class<?> inf = dao.getId();
         container.put(inf, LazyGet.of(() -> {
             try {
-                return DaoGenerator.generate(dao, Paths.get("/Users/yee/work/tmp"));
+                return DaoGenerator.generate(dao);
             } catch (Exception e) {
                 LOGGER.error("generate error", e);
                 throw new RuntimeException(e);

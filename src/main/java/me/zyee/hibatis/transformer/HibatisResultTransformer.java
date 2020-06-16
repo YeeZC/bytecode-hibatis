@@ -1,7 +1,7 @@
 package me.zyee.hibatis.transformer;
 
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.hibernate.HibernateException;
@@ -37,21 +37,26 @@ public class HibatisResultTransformer extends AliasedTupleSubsetResultTransforme
 
     @Override
     public Object transformTuple(Object[] tuple, String[] aliases) {
-        if (ObjectUtils.allNotNull(aliases)) {
+        if (tuple.length == alias2Property.size()) {
+            Map<Integer, String> aliasesMap = makeIndex2Properties(aliases);
+            if (aliasesMap.isEmpty()) {
+                return tuple;
+            }
             try {
                 Object result = targetClass.newInstance();
                 if (ClassUtils.isAssignable(Map.class, targetClass) || ClassUtils.isAssignable(targetClass, Map.class)) {
                     final Method put = MethodUtils.getAccessibleMethod(Map.class, "put", Object.class, Object.class);
                     for (int i = 0; i < tuple.length; i++) {
-                        String alias = aliases[i];
+                        String alias = aliasesMap.get(i);
                         if (alias != null) {
-                            put.invoke(result, alias2Property.getOrDefault(alias, alias), tuple[i]);
+                            put.invoke(result, alias, tuple[i]);
                         }
                     }
                 } else {
-                    for (int i = 0; i < aliases.length; i++) {
-                        if (null != aliases[i]) {
-                            FieldUtils.writeField(result, alias2Property.getOrDefault(aliases[i], aliases[i]), tuple[i], true);
+                    for (int i = 0; i < tuple.length; i++) {
+                        String alias = aliasesMap.get(i);
+                        if (alias != null) {
+                            FieldUtils.writeField(result, alias, tuple[i], true);
                         }
                     }
                 }
@@ -93,6 +98,31 @@ public class HibatisResultTransformer extends AliasedTupleSubsetResultTransforme
         } else {
             return tuple;
         }
+    }
+
+    private Map<Integer, String> makeIndex2Properties(String[] aliases) {
+        Map<Integer, String> aliasesMap = new HashMap<>(alias2Property.size());
+
+        for (Map.Entry<String, String> entry : alias2Property.entrySet()) {
+            // 解析hql查询的
+            try {
+                final int i = Integer.parseInt(StringUtils.substringBefore(entry.getKey(), "_hql_"));
+                aliasesMap.put(i, entry.getValue());
+            } catch (Throwable ignore) {
+                break;
+            }
+        }
+        if (aliasesMap.isEmpty()) {
+            if (null != aliases) {
+                for (int i = 0; i < aliases.length; i++) {
+                    final String alias = aliases[i];
+                    if (null != alias) {
+                        aliasesMap.put(i, alias2Property.get(alias));
+                    }
+                }
+            }
+        }
+        return aliasesMap;
     }
 
     public static ResultTransformer of(Map<String, String> alias2Property, Class<?> targetClass) {
