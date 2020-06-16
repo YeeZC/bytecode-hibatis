@@ -4,7 +4,7 @@ import io.airlift.bytecode.BytecodeBlock;
 import io.airlift.bytecode.Scope;
 import io.airlift.bytecode.Variable;
 import io.airlift.bytecode.expression.BytecodeExpressions;
-import me.zyee.hibatis.bytecode.BeanGenerator;
+import me.zyee.hibatis.bytecode.DaoGenerator;
 import me.zyee.hibatis.dao.DaoInfo;
 import me.zyee.hibatis.dao.DaoMapInfo;
 import me.zyee.hibatis.dao.DaoProperty;
@@ -37,7 +37,7 @@ public class MapRegistry {
             final Variable query = scope.getVariable("query");
             final Method put = MethodUtils.getAccessibleMethod(Map.class, "put", Object.class, Object.class);
             final Method setTrans = MethodUtils.getAccessibleMethod(Query.class, "setResultTransformer", ResultTransformer.class);
-            final Variable alias2Properties = BeanGenerator.createVariable(scope, HashMap.class, "alias2Properties");
+            final Variable alias2Properties = DaoGenerator.createVariable(scope, HashMap.class, "alias2Properties");
             final List<DaoProperty> properties = mapInfo.getProperties();
             body.append(alias2Properties.set(BytecodeExpressions.newInstance(HashMap.class,
                     BytecodeExpressions.constantInt(properties.size()))));

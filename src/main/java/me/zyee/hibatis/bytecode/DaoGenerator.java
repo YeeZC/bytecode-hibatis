@@ -5,8 +5,11 @@ import io.airlift.bytecode.ClassDefinition;
 import io.airlift.bytecode.ClassGenerator;
 import io.airlift.bytecode.DynamicClassLoader;
 import io.airlift.bytecode.ParameterizedType;
+import io.airlift.bytecode.Scope;
+import io.airlift.bytecode.Variable;
 import me.zyee.hibatis.bytecode.impl.DefaultDaoVisitor;
 import me.zyee.hibatis.dao.DaoInfo;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
 import java.util.Collections;
@@ -52,5 +55,12 @@ public class DaoGenerator {
     public static ParameterizedType makeClassName(String packageName, String className) {
         final String string = BytecodeUtils.toJavaIdentifierString(className + "_" + System.currentTimeMillis());
         return ParameterizedType.typeFromJavaClassName(packageName + ".$gen.impl." + string);
+    }
+
+    public static Variable createVariable(Scope scope, Class<?> clazz, String name) {
+        if (StringUtils.isEmpty(name)) {
+            return scope.createTempVariable(clazz);
+        }
+        return scope.declareVariable(clazz, name);
     }
 }
