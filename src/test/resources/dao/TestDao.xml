@@ -9,7 +9,7 @@
     <select id="findAll" resultMap="all">
         select id, name from TestEntity
     </select>
-    <select id="findNativeAll" native="true">
+    <select id="getAllCount" native="true">
         select * from test
     </select>
     <select id="findById">

@@ -6,6 +6,7 @@ import io.airlift.bytecode.expression.BytecodeExpressions;
 import me.zyee.hibatis.bytecode.DaoGenerator;
 import me.zyee.hibatis.dao.DaoMethodInfo;
 import me.zyee.hibatis.dao.registry.MapRegistry;
+import me.zyee.hibatis.transformer.HibatisReturnClassTransformer;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
@@ -27,7 +28,7 @@ public class SQLMethodVisitor extends BaseMethodVisitor {
     }
 
     @Override
-    protected void generateSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method transformer, Method setTrans) {
+    protected void generateSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method setTrans) {
         final String resultMap = methodInfo.getResultMap();
         final Class<?> resultType = methodInfo.getResultType();
         if (StringUtils.isNotEmpty(resultMap)) {
@@ -37,14 +38,14 @@ public class SQLMethodVisitor extends BaseMethodVisitor {
             body.retObject();
         } else if (null != resultType) {
             body.append(query.invoke(setTrans,
-                    BytecodeExpressions.invokeStatic(transformer,
+                    BytecodeExpressions.newInstance(HibatisReturnClassTransformer.class,
                             BytecodeExpressions.constantClass(resultType))));
             body.append(query.invoke("getSingleResult", Object.class));
             body.retObject();
         } else {
             if (!ClassUtils.isPrimitiveOrWrapper(methodReturnType) && !methodReturnType.equals(String.class)) {
                 body.append(query.invoke(setTrans,
-                        BytecodeExpressions.invokeStatic(transformer,
+                        BytecodeExpressions.newInstance(HibatisReturnClassTransformer.class,
                                 BytecodeExpressions.constantClass(methodReturnType))));
             }
             body.append(visitSingleReturnType(query.invoke("getSingleResult", Object.class), methodReturnType));
@@ -53,7 +54,7 @@ public class SQLMethodVisitor extends BaseMethodVisitor {
     }
 
     @Override
-    protected Variable generateList(DaoMethodInfo methodInfo, Method transformer, Class<?> componentClass, Method setTrans) {
+    protected Variable generateList(DaoMethodInfo methodInfo, Class<?> componentClass, Method setTrans) {
         final String resultMap = methodInfo.getResultMap();
         final Class<?> resultType = methodInfo.getResultType();
         if (StringUtils.isNotEmpty(resultMap)) {
@@ -64,21 +65,21 @@ public class SQLMethodVisitor extends BaseMethodVisitor {
         } else if (null != resultType) {
             final Variable result = DaoGenerator.createVariable(scope, List.class, "result");
             body.append(query.invoke(setTrans,
-                    BytecodeExpressions.invokeStatic(transformer,
+                    BytecodeExpressions.newInstance(HibatisReturnClassTransformer.class,
                             BytecodeExpressions.constantClass(resultType))));
             body.append(result.set(query.invoke("getResultList", List.class)));
             return result;
         } else if (componentClass != null) {
             final Variable result = DaoGenerator.createVariable(scope, List.class, "result");
             body.append(query.invoke(setTrans,
-                    BytecodeExpressions.invokeStatic(transformer,
+                    BytecodeExpressions.newInstance(HibatisReturnClassTransformer.class,
                             BytecodeExpressions.constantClass(componentClass))));
             body.append(result.set(query.invoke("getResultList", List.class)));
             return result;
         } else {
             final Variable result = DaoGenerator.createVariable(scope, List.class, "result");
             body.append(query.invoke(setTrans,
-                    BytecodeExpressions.invokeStatic(transformer,
+                    BytecodeExpressions.newInstance(HibatisReturnClassTransformer.class,
                             scope.getThis().getField("entityClass", Class.class))));
             body.append(result.set(query.invoke("getResultList", List.class)));
             return result;

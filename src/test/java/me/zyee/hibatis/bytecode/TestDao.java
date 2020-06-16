@@ -12,7 +12,7 @@ import java.util.List;
 public interface TestDao {
     List findAll();
 
-    List findNativeAll();
+    TestEntity getAllCount();
 
     TestEntity findById(Test id);
 

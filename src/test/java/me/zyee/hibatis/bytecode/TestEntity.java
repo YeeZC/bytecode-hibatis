@@ -18,6 +18,9 @@ public class TestEntity {
     @Column
     String name;
 
+    private TestEntity() {
+    }
+
     public String getId() {
         return id;
     }

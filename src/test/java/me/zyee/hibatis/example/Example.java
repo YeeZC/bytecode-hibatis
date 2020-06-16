@@ -8,7 +8,6 @@ import me.zyee.hibatis.template.factory.TemplateFactory;
 import org.hibernate.cfg.Configuration;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * @author yee
@@ -22,8 +21,8 @@ public class Example {
         hiBatisConfig.setConfiguration(getConfiguration());
         final TemplateFactory templateFactory = hiBatisConfig.buildTemplateFactory();
         final HiBatisTemplate template = templateFactory.createTemplate();
-        final List list = template.runNonTx(TestDao.class, ((dao, session) -> dao.findNativeAll()));
-        System.out.println(list);
+        final TestEntity count = template.runNonTx(TestDao.class, ((dao, session) -> dao.getAllCount()));
+        System.out.println("find count " + count);
     }
 
 

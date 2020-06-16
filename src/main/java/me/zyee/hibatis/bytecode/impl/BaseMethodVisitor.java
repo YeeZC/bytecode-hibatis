@@ -21,7 +21,6 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hibernate.transform.ResultTransformer;
-import org.hibernate.transform.Transformers;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -155,18 +154,17 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
     }
 
     protected void visitSelect(DaoMethodInfo methodInfo, Class<?> methodReturnType) throws NoSuchMethodException {
-        Method transformer = Transformers.class.getDeclaredMethod("aliasToBean", Class.class);
         Method setTrans = Query.class.getDeclaredMethod("setResultTransformer", ResultTransformer.class);
         final Method toArray = List.class.getDeclaredMethod("toArray", java.lang.Object[].class);
         if (ClassUtils.isAssignable(Collection.class, methodReturnType) || ClassUtils.isAssignable(methodReturnType, Collection.class)) {
-            final Variable variable = generateList(methodInfo, transformer, null, setTrans);
+            final Variable variable = generateList(methodInfo, null, setTrans);
             body.append(variable).retObject();
         } else if (methodReturnType.isArray()) {
-            final Variable variable = generateList(methodInfo, transformer, methodReturnType.getComponentType(), setTrans);
+            final Variable variable = generateList(methodInfo, methodReturnType.getComponentType(), setTrans);
             body.append(variable.invoke(toArray, BytecodeExpressions.newArray(ParameterizedType.type(methodReturnType.getComponentType()), 0)));
             body.retObject();
         } else {
-            generateSingle(methodInfo, methodReturnType, transformer, setTrans);
+            generateSingle(methodInfo, methodReturnType, setTrans);
         }
     }
 
@@ -175,21 +173,19 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
      *
      * @param methodInfo
      * @param methodReturnType
-     * @param transformer
      * @param setTrans
      */
-    abstract protected void generateSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method transformer, Method setTrans);
+    abstract protected void generateSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method setTrans);
 
     /**
      * 生成List返回值
      *
      * @param methodInfo
-     * @param transformer
      * @param componentClass
      * @param setTrans
      * @return
      */
-    abstract protected Variable generateList(DaoMethodInfo methodInfo, Method transformer, Class<?> componentClass,
+    abstract protected Variable generateList(DaoMethodInfo methodInfo, Class<?> componentClass,
                                              Method setTrans);
 
     /**
