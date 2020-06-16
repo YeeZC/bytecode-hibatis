@@ -26,11 +26,11 @@ public class HQLMethodVisitor extends BaseMethodVisitor {
     }
 
     @Override
-    protected Variable invokeList(DaoMethodInfo methodInfo, Method transformer, Class<?> componentClass, Method setTrans) {
+    protected Variable generateList(DaoMethodInfo methodInfo, Method transformer, Class<?> componentClass, Method setTrans) {
         final String resultMap = methodInfo.getResultMap();
         final Class<?> resultType = methodInfo.getResultType();
         if (StringUtils.isNotEmpty(resultMap)) {
-            body.append(registry.getMapBlock(resultMap, scope, query));
+            body.append(registry.getMapBlock(resultMap, scope, true));
             final Variable tmp = BeanGenerator.createVariable(scope, List.class, "result");
             body.append(tmp.set(query.invoke("getResultList", List.class)));
             return tmp;
@@ -56,11 +56,11 @@ public class HQLMethodVisitor extends BaseMethodVisitor {
     }
 
     @Override
-    protected void invokeSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method transformer, Method setTrans) {
+    protected void generateSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method transformer, Method setTrans) {
         final String resultMap = methodInfo.getResultMap();
         final Class<?> resultType = methodInfo.getResultType();
         if (StringUtils.isNotEmpty(resultMap)) {
-            body.append(registry.getMapBlock(resultMap, scope, query));
+            body.append(registry.getMapBlock(resultMap, scope, true));
             body.append(query.invoke("getSingleResult", Object.class)
                     .cast(registry.getMapClass(resultMap)));
             body.retObject();

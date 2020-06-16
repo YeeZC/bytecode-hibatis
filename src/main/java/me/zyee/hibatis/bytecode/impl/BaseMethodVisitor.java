@@ -17,7 +17,6 @@ import me.zyee.hibatis.dao.MethodType;
 import me.zyee.hibatis.dao.annotation.Param;
 import me.zyee.hibatis.dao.registry.MapRegistry;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -160,74 +159,38 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
         Method setTrans = Query.class.getDeclaredMethod("setResultTransformer", ResultTransformer.class);
         final Method toArray = List.class.getDeclaredMethod("toArray", java.lang.Object[].class);
         if (ClassUtils.isAssignable(Collection.class, methodReturnType) || ClassUtils.isAssignable(methodReturnType, Collection.class)) {
-            final Variable variable = invokeList(methodInfo, transformer, null, setTrans);
+            final Variable variable = generateList(methodInfo, transformer, null, setTrans);
             body.append(variable).retObject();
         } else if (methodReturnType.isArray()) {
-            final Variable variable = invokeList(methodInfo, transformer, methodReturnType.getComponentType(), setTrans);
+            final Variable variable = generateList(methodInfo, transformer, methodReturnType.getComponentType(), setTrans);
             body.append(variable.invoke(toArray, BytecodeExpressions.newArray(ParameterizedType.type(methodReturnType.getComponentType()), 0)));
             body.retObject();
         } else {
-            invokeSingle(methodInfo, methodReturnType, transformer, setTrans);
+            generateSingle(methodInfo, methodReturnType, transformer, setTrans);
         }
     }
 
-    protected void invokeSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method transformer, Method setTrans) {
-        final String resultMap = methodInfo.getResultMap();
-        final Class<?> resultType = methodInfo.getResultType();
-        if (StringUtils.isNotEmpty(resultMap)) {
-            body.append(registry.getMapBlock(resultMap, scope, query));
-            body.append(query.invoke("getSingleResult", Object.class)
-                    .cast(registry.getMapClass(resultMap)));
-            body.retObject();
-        } else if (null != resultType) {
-            body.append(query.invoke(setTrans,
-                    BytecodeExpressions.invokeStatic(transformer,
-                            BytecodeExpressions.constantClass(resultType))));
-            body.append(query.invoke("getSingleResult", Object.class));
-            body.retObject();
-        } else {
-            if (!ClassUtils.isPrimitiveOrWrapper(methodReturnType) && !methodReturnType.equals(String.class)) {
-                body.append(query.invoke(setTrans,
-                        BytecodeExpressions.invokeStatic(transformer,
-                                BytecodeExpressions.constantClass(methodReturnType))));
-            }
-            body.append(visitSingleReturnType(query.invoke("getSingleResult", Object.class), methodReturnType));
-            body.ret(methodReturnType);
-        }
-    }
+    /**
+     * 生成单返回值
+     *
+     * @param methodInfo
+     * @param methodReturnType
+     * @param transformer
+     * @param setTrans
+     */
+    abstract protected void generateSingle(DaoMethodInfo methodInfo, Class<?> methodReturnType, Method transformer, Method setTrans);
 
-    protected Variable invokeList(DaoMethodInfo methodInfo, Method transformer, Class<?> componentClass,
-                                  Method setTrans) {
-        final String resultMap = methodInfo.getResultMap();
-        final Class<?> resultType = methodInfo.getResultType();
-        if (StringUtils.isNotEmpty(resultMap)) {
-            body.append(registry.getMapBlock(resultMap, scope, query));
-            final Variable tmp = BeanGenerator.createVariable(scope, List.class, "result");
-            body.append(tmp.set(query.invoke("getResultList", List.class)));
-            return tmp;
-        } else if (null != resultType) {
-            final Variable result = BeanGenerator.createVariable(scope, List.class, "result");
-            body.append(query.invoke(setTrans,
-                    BytecodeExpressions.invokeStatic(transformer,
-                            BytecodeExpressions.constantClass(resultType))));
-            body.append(result.set(query.invoke("getResultList", List.class)));
-            return result;
-        } else if (componentClass != null) {
-            final Variable result = BeanGenerator.createVariable(scope, List.class, "result");
-            body.append(query.invoke(setTrans,
-                    BytecodeExpressions.invokeStatic(transformer,
-                            BytecodeExpressions.constantClass(componentClass))));
-            body.append(result.set(query.invoke("getResultList", List.class)));
-            return result;
-        } else {
-            final Variable result = BeanGenerator.createVariable(scope, List.class, "result");
-            body.append(query.invoke(setTrans,
-                    BytecodeExpressions.invokeStatic(transformer,
-                            scope.getThis().getField("entityClass", Class.class))));
-            body.append(result.set(query.invoke("getResultList", List.class)));
-            return result;
-        }
-    }
+    /**
+     * 生成List返回值
+     *
+     * @param methodInfo
+     * @param transformer
+     * @param componentClass
+     * @param setTrans
+     * @return
+     */
+    abstract protected Variable generateList(DaoMethodInfo methodInfo, Method transformer, Class<?> componentClass,
+                                             Method setTrans);
 
     /**
      * 创建查询Method

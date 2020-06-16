@@ -6,7 +6,7 @@
         <column column="id" field="hello" javaType="java.lang.String"/>
         <column column="name" field="gogogo" javaType="java.lang.String"/>
     </map>
-    <select id="findAll">
+    <select id="findAll" resultMap="all">
         select id, name from TestEntity
     </select>
     <select id="findNativeAll" native="true" resultMap="all">
