@@ -29,8 +29,7 @@ public class DaoGenerator {
      * @param info Dao信息
      * @param out  导出路径
      * @return
-     * @throws ClassNotFoundException
-     * @throws NoSuchMethodException
+     * @throws ByteCodeGenerateException
      */
     public static Class<?> generate(DaoInfo info, Path out) throws ByteCodeGenerateException {
         // 动态字节码生成的classLoader

@@ -10,7 +10,7 @@
         select id, name from TestEntity
     </select>
     <select id="getAllCount" native="true">
-        select * from test
+        select count(*) from test
     </select>
     <select id="findById">
         from TestEntity where id = :id

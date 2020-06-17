@@ -10,11 +10,11 @@ import java.util.List;
  * Created by yee on 2020/6/11
  */
 public interface TestDao {
-    List findAll();
+    List<TestBean> findAll();
 
-    TestEntity getAllCount();
+    int getAllCount();
 
-    TestEntity findById(Test id);
+    TestEntity findById(@Param("id") String id);
 
     int insert(@Param("id") String id, @Param("name") String name);
 }

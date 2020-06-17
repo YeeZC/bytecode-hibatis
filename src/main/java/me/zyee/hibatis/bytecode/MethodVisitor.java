@@ -9,5 +9,11 @@ import me.zyee.hibatis.exception.ByteCodeGenerateException;
  * Create by yee on 2020/6/15
  */
 public interface MethodVisitor {
+    /**
+     * 生成方法
+     *
+     * @return
+     * @throws ByteCodeGenerateException
+     */
     MethodDefinition visit() throws ByteCodeGenerateException;
 }
