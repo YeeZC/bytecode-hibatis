@@ -14,9 +14,9 @@ import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -47,7 +47,7 @@ public class DaoRegistry {
                         , Collections.emptyMap());
                 // 生成方法
                 return ClassGenerator.classGenerator(dynamicClassLoader)
-                        .dumpClassFilesTo(Optional.empty()).defineClass(compile, dao.getId());
+                        .dumpClassFilesTo(Paths.get("/Users/yee/work/tmp1")).defineClass(compile, dao.getId());
             } catch (HibatisException e) {
                 throw new RuntimeException(e);
             }

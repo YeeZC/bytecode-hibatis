@@ -5,7 +5,6 @@ import io.airlift.bytecode.ClassDefinition;
 import io.airlift.bytecode.FieldDefinition;
 import io.airlift.bytecode.Parameter;
 import io.airlift.bytecode.ParameterizedType;
-import io.airlift.bytecode.expression.BytecodeExpressions;
 import me.zyee.hibatis.bytecode.DaoGenerator;
 import me.zyee.hibatis.bytecode.compiler.Compiler;
 import me.zyee.hibatis.bytecode.compiler.impl.ConstructorCompiler;
@@ -33,18 +32,14 @@ public class DaoCompiler implements Compiler<DaoInfo, ClassDefinition> {
     @Override
     public ClassDefinition compile(DaoInfo daoInfo) throws HibatisException {
         final Class<?> inf = daoInfo.getId();
-        final Class<?> entity = daoInfo.getEntity();
         ClassDefinition classDefinition = new ClassDefinition(Access.a(Access.PUBLIC, Access.FINAL),
                 DaoGenerator.makeClassName("dao", inf.getSimpleName()),
                 ParameterizedType.type(Object.class),
                 ParameterizedType.type(inf));
         final FieldDefinition session = classDefinition.declareField(Access.a(Access.PRIVATE, Access.FINAL),
                 "session", Session.class);
-        final FieldDefinition entityClass = classDefinition.declareField(Access.a(Access.PRIVATE, Access.FINAL, Access.STATIC),
-                "ENTITY", Class.class);
         final FieldDefinition mapRegistry = classDefinition.declareField(Access.a(Access.PRIVATE, Access.FINAL),
                 "mapRegistry", MapRegistry.class);
-        BytecodeExpressions.setStatic(entityClass, BytecodeExpressions.constantClass(entity));
 
         compiler.compile(ConstructorCompiler.Context.newInstance(classDefinition)
                 .append(Parameter.arg("session", Session.class))
@@ -71,7 +66,7 @@ public class DaoCompiler implements Compiler<DaoInfo, ClassDefinition> {
             }
         }
 
-        MethodCompiler methodCompiler = new MethodCompiler(classDefinition, MapRegistry.of(daoInfo));
+        MethodCompiler methodCompiler = new MethodCompiler(classDefinition);
 
         for (Method method : inf.getDeclaredMethods()) {
             // 接口中待实现的方法没有实现

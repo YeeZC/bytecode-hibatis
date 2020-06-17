@@ -11,13 +11,8 @@ import io.airlift.bytecode.Variable;
 import io.airlift.bytecode.expression.BytecodeExpressions;
 import me.zyee.hibatis.bytecode.compiler.NoRetCompiler;
 import me.zyee.hibatis.dao.DaoMethodInfo;
-import me.zyee.hibatis.dao.MethodType;
 import me.zyee.hibatis.dao.annotation.Param;
-import me.zyee.hibatis.dao.registry.MapRegistry;
 import me.zyee.hibatis.exception.HibatisException;
-import me.zyee.hibatis.query.HibatisQuery;
-import me.zyee.hibatis.query.impl.HibatisQueryImpl;
-import org.hibernate.Session;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -31,11 +26,9 @@ import java.util.stream.Stream;
  */
 public class MethodCompiler implements NoRetCompiler<MethodCompiler.Context> {
     private final ClassDefinition classDefinition;
-    private final MapRegistry mapRegistry;
 
-    public MethodCompiler(ClassDefinition classDefinition, MapRegistry mapRegistry) {
+    public MethodCompiler(ClassDefinition classDefinition) {
         this.classDefinition = classDefinition;
-        this.mapRegistry = mapRegistry;
     }
 
     @Override
@@ -59,18 +52,7 @@ public class MethodCompiler implements NoRetCompiler<MethodCompiler.Context> {
         }
 
         final String hql = methodInfo.getHql().trim();
-        final Variable query = scope.createTempVariable(HibatisQuery.class);
-        body.append(query.set(BytecodeExpressions.newInstance(HibatisQueryImpl.class, scope.getThis().getField("mapRegistry", MapRegistry.class))));
-        final MethodType type = methodInfo.getType();
-        if (type == MethodType.SELECT) {
-
-        } else {
-            body.append(query.invoke("executeUpdate", int.class,
-                    scope.getThis().getField("session", Session.class),
-                    BytecodeExpressions.constantString(hql),
-                    params, BytecodeExpressions.constantBoolean(methodInfo.isNativeSql())))
-                    .ret();
-        }
+        // TODO 方法体生成
 
     }
 
