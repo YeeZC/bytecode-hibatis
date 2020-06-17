@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  **/
 public class DaoRegistry {
     private final Map<Class<?>, LazyGet.SupplierLazyGet<Class<?>>> container = new ConcurrentHashMap<>();
+    private final Map<Class<?>, LazyGet.SupplierLazyGet<MapRegistry>> mapContainer = new ConcurrentHashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(DaoRegistry.class);
 
     public void addDao(DaoInfo dao) {
@@ -30,13 +31,15 @@ public class DaoRegistry {
                 throw new RuntimeException(e);
             }
         }));
+        mapContainer.put(inf, LazyGet.of(() -> MapRegistry.of(dao)));
     }
 
     public <T> T getDao(Class<T> daoClass, Session session) throws ByteCodeGenerateException {
         if (container.containsKey(daoClass)) {
             try {
                 final Class<?> cls = container.get(daoClass).get();
-                return daoClass.cast(MethodUtils.invokeStaticMethod(cls, "newInstance", session));
+                return daoClass.cast(MethodUtils.invokeStaticMethod(cls,
+                        "newInstance", session, mapContainer.get(daoClass)));
             } catch (Exception e) {
                 throw new ByteCodeGenerateException(e);
             }

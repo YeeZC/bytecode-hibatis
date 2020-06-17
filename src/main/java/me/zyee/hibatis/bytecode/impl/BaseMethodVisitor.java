@@ -12,18 +12,17 @@ import io.airlift.bytecode.expression.BytecodeExpression;
 import io.airlift.bytecode.expression.BytecodeExpressions;
 import me.zyee.hibatis.bytecode.DaoGenerator;
 import me.zyee.hibatis.bytecode.MethodVisitor;
+import me.zyee.hibatis.bytecode.compiler.dao.ParameterCompiler;
 import me.zyee.hibatis.dao.DaoMethodInfo;
 import me.zyee.hibatis.dao.MethodType;
 import me.zyee.hibatis.dao.annotation.Param;
 import me.zyee.hibatis.dao.registry.MapRegistry;
 import me.zyee.hibatis.exception.ByteCodeGenerateException;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hibernate.transform.ResultTransformer;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
@@ -66,34 +65,9 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
                 final Variable properties = scope.createTempVariable(Map.class);
                 body.append(properties.set(BytecodeExpressions.newInstance(ParameterizedType.type(HashMap.class),
                         BytecodeExpressions.constantInt(parameters.length))));
-                final Method put = Map.class.getDeclaredMethod("put", java.lang.Object.class, java.lang.Object.class);
+                final ParameterCompiler compiler = new ParameterCompiler(properties);
                 for (Parameter parameter : parameters) {
-                    final String name = parameter.getName();
-                    if (name.startsWith("var_")) {
-                        final String javaClassName = parameter.getType().getJavaClassName();
-                        final Class<?> aClass = ClassUtils.getClass(javaClassName);
-                        if (!ClassUtils.isPrimitiveOrWrapper(aClass) && !ClassUtils.isAssignable(String.class, aClass)) {
-                            final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(aClass, Param.class);
-                            final Method readField = FieldUtils.class.getDeclaredMethod("readField", java.lang.Object.class, String.class, boolean.class);
-                            for (Field field : fields) {
-                                final Param param = field.getAnnotation(Param.class);
-                                body.append(properties.invoke(put,
-                                        BytecodeExpressions.constantString(param.value()),
-                                        BytecodeExpressions.invokeStatic(readField, parameter,
-                                                BytecodeExpressions.constantString(field.getName()),
-                                                BytecodeExpressions.constantTrue())));
-                            }
-                        } else {
-                            body.append(properties.invoke(put,
-                                    BytecodeExpressions.constantString(name.replace("var_", "")),
-                                    parameter));
-                        }
-
-                    } else {
-                        body.append(properties.invoke(put,
-                                BytecodeExpressions.constantString(name),
-                                parameter));
-                    }
+                    body.append(compiler.compile(parameter));
                 }
                 body.append(query.invoke("setProperties", Query.class, properties));
             }
