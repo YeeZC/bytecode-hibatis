@@ -66,8 +66,6 @@ public class MethodCompiler implements NoRetCompiler<MethodCompiler.Context> {
 
         final String hql = methodInfo.getHql().trim();
         final BytecodeExpression mapRegistry = scope.getThis().getField("mapRegistry", MapRegistry.class);
-        // TODO 方法体生成
-//        new SqlMapperBuilder()
         final Variable builder = scope.declareVariable(MapperBuilder.class, "builder");
         body.append(builder.set(BytecodeExpressions.newInstance(SqlMapperBuilder.class, mapRegistry)));
         if (methodInfo.isNativeSql()) {

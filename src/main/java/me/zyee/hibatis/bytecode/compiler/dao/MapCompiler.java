@@ -24,6 +24,7 @@ import java.util.Optional;
  * @version 1.0
  * Create by yee on 2020/6/17
  */
+@Deprecated
 public class MapCompiler implements ByteCodeNodeCompiler<MapCompiler.Context> {
     private final Method put;
     private final Method setTrans;
