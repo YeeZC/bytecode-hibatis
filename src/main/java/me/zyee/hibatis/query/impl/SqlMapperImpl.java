@@ -41,8 +41,4 @@ public class SqlMapperImpl<T> implements SqlMapper<T> {
         return query.executeUpdate();
     }
 
-    public static me.zyee.hibatis.query.SqlMapper sql() {
-        return new SqlMapperImpl(Session::createSQLQuery) {
-        };
-    }
 }
