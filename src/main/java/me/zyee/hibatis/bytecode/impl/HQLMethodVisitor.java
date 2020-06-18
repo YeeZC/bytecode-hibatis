@@ -21,6 +21,7 @@ import java.util.List;
  * @version 1.0
  * Create by yee on 2020/6/15
  */
+@Deprecated
 public class HQLMethodVisitor extends BaseMethodVisitor {
 
     public HQLMethodVisitor(ClassDefinition classDefinition, Method method, DaoMethodInfo methodInfo, MapRegistry maps) {

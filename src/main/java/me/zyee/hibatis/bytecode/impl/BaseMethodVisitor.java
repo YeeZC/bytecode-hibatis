@@ -35,6 +35,7 @@ import java.util.stream.Stream;
  * @version 1.0
  * Create by yee on 2020/6/15
  */
+@Deprecated
 public abstract class BaseMethodVisitor implements MethodVisitor {
     private final ClassDefinition classDefinition;
     private final Method method;

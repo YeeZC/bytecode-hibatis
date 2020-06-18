@@ -1,6 +1,7 @@
 package me.zyee.hibatis.bytecode.compiler.bean;
 
 import io.airlift.bytecode.Access;
+import io.airlift.bytecode.AnnotationDefinition;
 import io.airlift.bytecode.BytecodeBlock;
 import io.airlift.bytecode.ClassDefinition;
 import io.airlift.bytecode.FieldDefinition;
@@ -11,6 +12,7 @@ import io.airlift.bytecode.Scope;
 import io.airlift.bytecode.Variable;
 import io.airlift.bytecode.expression.BytecodeExpressions;
 import me.zyee.hibatis.bytecode.DaoGenerator;
+import me.zyee.hibatis.bytecode.annotation.Order;
 import me.zyee.hibatis.bytecode.compiler.Compiler;
 import me.zyee.hibatis.dao.DaoMapInfo;
 import me.zyee.hibatis.dao.DaoProperty;
@@ -64,11 +66,16 @@ public class BeanCompiler implements Compiler<DaoMapInfo, ClassDefinition> {
         final Variable result = scope.declareVariable(resultMap, "result");
         body.append(result.set(BytecodeExpressions.newInstance(resultMap)));
 
-        properties.stream().peek(property -> {
+        for (int i = 0; i < properties.size(); i++) {
+            final DaoProperty property = properties.get(i);
             final FieldDefinition fieldDefinition = classDefinition.declareField(Access.a(Access.PRIVATE),
                     property.getColumn(), property.getJavaType());
+            final AnnotationDefinition annotation = fieldDefinition.declareAnnotation(Order.class);
+            annotation.setValue("value", i);
             generateGetSet(classDefinition, fieldDefinition);
-        }).forEach(property -> {
+        }
+
+        properties.forEach(property -> {
             if (ClassUtils.isAssignable(Map.class, resultMap) || ClassUtils.isAssignable(resultMap, Map.class)) {
                 body.append(scope.getVariable("result")
                         .invoke(put, BytecodeExpressions.constantString(property.getProperty()),
@@ -101,12 +108,8 @@ public class BeanCompiler implements Compiler<DaoMapInfo, ClassDefinition> {
         final MethodDefinition setter = classDefinition.declareMethod(Access.a(Access.PUBLIC),
                 "set" + name, ParameterizedType.type(void.class), arg);
         final Scope scope = setter.getScope();
-        setter.getBody().append(scope.getThis().setField(field, arg));
+        setter.getBody().append(scope.getThis().setField(field, arg)).ret();
 
-        // getter
-        final MethodDefinition getter = classDefinition.declareMethod(Access.a(Access.PUBLIC),
-                "get" + name, field.getType());
-        getter.getBody().append(scope.getThis().getField(field)).retObject();
     }
 
 }

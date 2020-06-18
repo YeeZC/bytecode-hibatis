@@ -31,6 +31,7 @@ public class DaoGenerator {
      * @return
      * @throws ByteCodeGenerateException
      */
+    @Deprecated
     public static Class<?> generate(DaoInfo info, Path out) throws ByteCodeGenerateException {
         // 动态字节码生成的classLoader
         final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(DaoGenerator.class.getClassLoader()
@@ -41,6 +42,7 @@ public class DaoGenerator {
         return ClassGenerator.classGenerator(dynamicClassLoader).dumpClassFilesTo(Optional.ofNullable(out)).defineClass(visit, info.getId());
     }
 
+    @Deprecated
     public static Class<?> generate(DaoInfo info) throws ByteCodeGenerateException {
         return generate(info, null);
     }

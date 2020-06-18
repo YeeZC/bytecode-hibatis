@@ -12,6 +12,7 @@ import me.zyee.hibatis.dao.DaoMapInfo;
 import me.zyee.hibatis.exception.ByteCodeGenerateException;
 import me.zyee.hibatis.exception.HibatisNotFountException;
 
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,10 +40,11 @@ public class MapRegistry {
         beanContainer.put(mapInfo.getMapId(), LazyGet.of(loader -> {
             final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(loader, Collections.emptyMap());
             final BeanCompiler beanCompiler = new BeanCompiler();
-            return ClassGenerator.classGenerator(dynamicClassLoader).defineClass(beanCompiler.compile(mapInfo), ObjectCast.class);
+            return ClassGenerator.classGenerator(dynamicClassLoader).dumpClassFilesTo(Paths.get("/Users/yee/work/tmp1")).defineClass(beanCompiler.compile(mapInfo), ObjectCast.class);
         }));
     }
 
+    @Deprecated
     public BytecodeBlock getMapBlock(String mapId, Scope scope, boolean isHql) throws ByteCodeGenerateException {
         if (container.containsKey(mapId)) {
             try {
@@ -65,6 +67,7 @@ public class MapRegistry {
         throw new ByteCodeGenerateException(new HibatisNotFountException("Map " + mapId + " not found"));
     }
 
+    @Deprecated
     public Class<?> getMapClass(String mapId) {
         return classSuppliers.get(mapId).get();
     }

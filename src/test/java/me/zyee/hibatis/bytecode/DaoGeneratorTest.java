@@ -1,12 +1,16 @@
 package me.zyee.hibatis.bytecode;
 
+import io.airlift.bytecode.ClassDefinition;
+import io.airlift.bytecode.ClassGenerator;
+import io.airlift.bytecode.DynamicClassLoader;
+import me.zyee.hibatis.bytecode.compiler.dao.DaoCompiler;
 import me.zyee.hibatis.dao.DaoInfo;
 import me.zyee.hibatis.parser.DomParser;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.util.Collections;
 
 /**
  * @author yee
@@ -98,15 +102,15 @@ public class DaoGeneratorTest {
         final DaoInfo parse = DomParser.parse(resourceAsStream);
 //        final DaoRegistry daoRegistry = new DaoRegistry();
 ////        daoRegistry.addDao(parse);
-//        final ClassDefinition compile = new DaoCompiler().compile(parse);
-//        final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(DaoGenerator.class.getClassLoader()
-//                , Collections.emptyMap());
-//        // 生成方法
-//        ClassGenerator.classGenerator(dynamicClassLoader)
-//                .dumpClassFilesTo(Paths.get("/Users/yee/work/tmp1")).defineClass(compile, parse.getId());
+        final ClassDefinition compile = new DaoCompiler().compile(parse);
+        final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(DaoGenerator.class.getClassLoader()
+                , Collections.emptyMap());
+        // 生成方法
+        ClassGenerator.classGenerator(dynamicClassLoader)
+                .dumpClassFilesTo(Paths.get("/Users/yee/work/tmp1")).defineClass(compile, parse.getId());
 //        final TestDao newDao = daoRegistry.getNewDao(TestDao.class, null);
-        final Class<?> generate = DaoGenerator.generate(parse, Paths.get("/Users/yee/work/tmp"));
-        Assert.assertNotNull(generate);
+//        final Class<?> generate = DaoGenerator.generate(parse, Paths.get("/Users/yee/work/tmp"));
+//        Assert.assertNotNull(generate);
     }
 
 }

@@ -8,6 +8,7 @@ import me.zyee.hibatis.exception.ByteCodeGenerateException;
  * @version 1.0
  * Create by yee on 2020/6/15
  */
+@Deprecated
 public interface MethodVisitor {
     /**
      * 生成方法

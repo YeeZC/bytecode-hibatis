@@ -26,6 +26,7 @@ import java.util.Map;
  * @author yee
  * Created by yee on 2020/6/12
  **/
+@Deprecated
 public class DefaultDaoVisitor {
 
     /**

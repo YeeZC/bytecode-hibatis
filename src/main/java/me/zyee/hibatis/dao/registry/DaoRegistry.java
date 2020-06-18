@@ -54,6 +54,7 @@ public class DaoRegistry {
         }));
     }
 
+    @Deprecated
     public <T> T getDao(Class<T> daoClass, Session session) throws ByteCodeGenerateException {
         if (container.containsKey(daoClass)) {
             try {
@@ -72,7 +73,7 @@ public class DaoRegistry {
             try {
                 final Class<?> cls = newContainer.get(daoClass).get();
                 return daoClass.cast(MethodUtils.invokeStaticMethod(cls,
-                        "newInstance", session, mapContainer.get(daoClass)));
+                        "newInstance", session, mapContainer.get(daoClass).get()));
             } catch (Exception e) {
                 throw new ByteCodeGenerateException(e);
             }

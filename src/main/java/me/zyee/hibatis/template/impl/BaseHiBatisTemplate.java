@@ -66,7 +66,7 @@ public class BaseHiBatisTemplate implements HiBatisTemplate {
     @Override
     public <T> T createDao(Class<T> daoInf, Session session) throws HibatisException {
         try {
-            return registry.getDao(daoInf, session);
+            return registry.getNewDao(daoInf, session);
         } catch (Exception e) {
             LOGGER.error("get Dao error", e);
             throw new HibatisException(e);

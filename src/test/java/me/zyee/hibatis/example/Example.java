@@ -22,7 +22,7 @@ public class Example {
         hiBatisConfig.setConfiguration(getConfiguration());
         final TemplateFactory templateFactory = hiBatisConfig.buildTemplateFactory();
         final HiBatisTemplate template = templateFactory.createTemplate();
-        final int count = template.runNonTx(TestDao.class, ((dao, session) -> dao.getAllCount()));
+        final Object count = template.runNonTx(TestDao.class, ((dao, session) -> dao.findById("111")));
         System.out.println("find count " + count);
     }
 

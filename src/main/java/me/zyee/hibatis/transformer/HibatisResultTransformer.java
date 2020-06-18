@@ -21,6 +21,7 @@ import java.util.Optional;
  * @version 1.0
  * Created by yee on 2020/6/15
  */
+@Deprecated
 public class HibatisResultTransformer extends AliasedTupleSubsetResultTransformer {
     private final Map<String, String> alias2Property;
     private final Class<?> targetClass;
