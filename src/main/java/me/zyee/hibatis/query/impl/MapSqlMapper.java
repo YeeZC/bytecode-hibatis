@@ -3,6 +3,7 @@ package me.zyee.hibatis.query.impl;
 import me.zyee.hibatis.bytecode.compiler.bean.ObjectCast;
 import me.zyee.hibatis.dao.registry.MapRegistry;
 import me.zyee.hibatis.exception.ByteCodeGenerateException;
+import me.zyee.hibatis.query.page.Page;
 import me.zyee.hibatis.transformer.HibatisReturnClassTransformer;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -37,6 +38,12 @@ public class MapSqlMapper extends SqlMapperImpl {
 
     private Query getQuery(Session session, String sql, Map param) {
         final Query query = (Query) createQuery.apply(session, sql);
+        final Page page = (Page) param.remove(PAGE_PARAM);
+        query.setProperties(param);
+        if (null != page) {
+            query.setFirstResult(page.getPage() * page.getSize())
+                    .setMaxResults(page.getSize());
+        }
         query.setProperties(param);
         try {
             final ClassLoader classLoader = session.getClass().getClassLoader();

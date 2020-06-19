@@ -11,6 +11,7 @@ import me.zyee.hibatis.bytecode.impl.DefaultDaoVisitor;
 import me.zyee.hibatis.dao.DaoInfo;
 import me.zyee.hibatis.exception.ByteCodeGenerateException;
 import org.apache.commons.lang3.StringUtils;
+import org.n3r.idworker.Sid;
 
 import java.nio.file.Path;
 import java.util.Collections;
@@ -55,7 +56,7 @@ public class DaoGenerator {
      * @return
      */
     public static ParameterizedType makeClassName(String prefix, String className) {
-        final String string = BytecodeUtils.toJavaIdentifierString(className + "_" + System.currentTimeMillis());
+        final String string = BytecodeUtils.toJavaIdentifierString(className + "$_" + Sid.nextShort());
         return ParameterizedType.typeFromJavaClassName("me.zyee.hibatis.binding.gen." + prefix + "." + string);
     }
 
