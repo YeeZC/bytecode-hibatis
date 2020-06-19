@@ -1,6 +1,7 @@
 package me.zyee.hibatis.template;
 
 import me.zyee.hibatis.exception.HibatisException;
+import me.zyee.hibatis.query.result.PageList;
 import org.hibernate.Session;
 
 import java.io.Serializable;
@@ -119,7 +120,11 @@ public interface HiBatisTemplate {
     default <Dao, T> T runTx(Class<Dao> daoClass, BiProcess<Dao, T> callable) {
         return runTx(session -> {
             final Dao dao = createDao(daoClass, session);
-            return callable.process(dao, session);
+            final T process = callable.process(dao, session);
+            if (process instanceof PageList) {
+                return (T) ((PageList) process).getContent();
+            }
+            return process;
         });
     }
 
@@ -134,7 +139,11 @@ public interface HiBatisTemplate {
     default <Dao, T> T runNonTx(Class<Dao> daoClass, BiProcess<Dao, T> callable) {
         return runNonTx(session -> {
             final Dao dao = createDao(daoClass, session);
-            return callable.process(dao, session);
+            final T process = callable.process(dao, session);
+            if (process instanceof PageList) {
+                return (T) ((PageList) process).getContent();
+            }
+            return process;
         });
     }
 
