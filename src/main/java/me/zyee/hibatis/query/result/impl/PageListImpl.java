@@ -1,6 +1,7 @@
 package me.zyee.hibatis.query.result.impl;
 
-import me.zyee.hibatis.dao.registry.LazyGet;
+import me.zyee.hibatis.common.LazyGet;
+import me.zyee.hibatis.common.SupplierLazyGet;
 import me.zyee.hibatis.query.result.PageList;
 
 import java.util.ArrayList;
@@ -19,8 +20,8 @@ public class PageListImpl<T> extends ArrayList<T> implements PageList<T> {
     private int currentPage;
     private int pageSize;
 
-    private final LazyGet.SupplierLazyGet<List<T>> content;
-    private final LazyGet.SupplierLazyGet<Long> count;
+    private final SupplierLazyGet<List<T>> content;
+    private final SupplierLazyGet<Long> count;
 
     public PageListImpl(Supplier<List<T>> content, Supplier<Long> count) {
         this.content = LazyGet.of(content);

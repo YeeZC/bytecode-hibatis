@@ -7,9 +7,6 @@ import io.airlift.bytecode.DynamicClassLoader;
 import io.airlift.bytecode.ParameterizedType;
 import io.airlift.bytecode.Scope;
 import io.airlift.bytecode.Variable;
-import me.zyee.hibatis.bytecode.impl.DefaultDaoVisitor;
-import me.zyee.hibatis.dao.DaoInfo;
-import me.zyee.hibatis.exception.ByteCodeGenerateException;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.idworker.Sid;
 
@@ -24,26 +21,6 @@ import java.util.Optional;
  * Created by yee on 2020/6/11
  **/
 public class HibatisGenerator {
-    /**
-     * 生成Dao实现类
-     *
-     * @param info Dao信息
-     * @param out  导出路径
-     * @return
-     * @throws ByteCodeGenerateException
-     */
-    @Deprecated
-    public static Class<?> generate(DaoInfo info, Path out) throws ByteCodeGenerateException {
-        // 实体类的描述
-        final ClassDefinition visit = new DefaultDaoVisitor().visit(info);
-        return generate(visit, info.getId(), null, out);
-        // 生成方法
-    }
-
-    @Deprecated
-    public static Class<?> generate(DaoInfo info) throws ByteCodeGenerateException {
-        return generate(info, null);
-    }
 
     public static Class<?> generate(ClassDefinition definition, Class<?> inf, ClassLoader classLoader, Path out) {
         final ClassLoader loader = Optional.ofNullable(classLoader)

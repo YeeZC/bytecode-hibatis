@@ -8,13 +8,13 @@ import io.airlift.bytecode.ParameterizedType;
 import me.zyee.hibatis.bytecode.HibatisGenerator;
 import me.zyee.hibatis.bytecode.compiler.Compiler;
 import me.zyee.hibatis.bytecode.compiler.impl.ConstructorCompiler;
+import me.zyee.hibatis.common.SupplierLazyGet;
 import me.zyee.hibatis.dao.DaoInfo;
 import me.zyee.hibatis.dao.DaoMethodInfo;
 import me.zyee.hibatis.dao.registry.MapRegistry;
 import me.zyee.hibatis.exception.ByteCodeGenerateException;
 import me.zyee.hibatis.exception.HibatisException;
 import me.zyee.hibatis.exception.HibatisNotFountException;
-import org.hibernate.Session;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -37,12 +37,12 @@ public class DaoCompiler implements Compiler<DaoInfo, ClassDefinition> {
                 ParameterizedType.type(Object.class),
                 ParameterizedType.type(inf));
         final FieldDefinition session = classDefinition.declareField(Access.a(Access.PRIVATE, Access.FINAL),
-                "session", Session.class);
+                "session", SupplierLazyGet.class);
         final FieldDefinition mapRegistry = classDefinition.declareField(Access.a(Access.PRIVATE, Access.FINAL),
                 "mapRegistry", MapRegistry.class);
 
         compiler.compile(ConstructorCompiler.Context.newInstance(classDefinition)
-                .append(Parameter.arg("session", Session.class))
+                .append(Parameter.arg("session", SupplierLazyGet.class))
                 .append(Parameter.arg("mapRegistry", MapRegistry.class))
                 .with(field -> {
                     if (field.equals(session)) {

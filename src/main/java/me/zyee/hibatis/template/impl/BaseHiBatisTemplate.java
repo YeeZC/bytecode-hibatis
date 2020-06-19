@@ -1,11 +1,14 @@
 package me.zyee.hibatis.template.impl;
 
+import me.zyee.hibatis.common.LazyGet;
+import me.zyee.hibatis.common.SupplierLazyGet;
 import me.zyee.hibatis.dao.registry.DaoRegistry;
 import me.zyee.hibatis.exception.HibatisException;
 import me.zyee.hibatis.template.HiBatisTemplate;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.SharedSessionContract;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,18 +29,20 @@ import java.util.Optional;
  * Created by yee on 2020/6/12
  **/
 public class BaseHiBatisTemplate implements HiBatisTemplate {
-    private final SessionFactory sessionFactory;
     private final DaoRegistry registry;
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseHiBatisTemplate.class);
+    private final SupplierLazyGet<Session> sessionSupplier;
 
     public BaseHiBatisTemplate(SessionFactory sessionFactory, DaoRegistry registry) {
-        this.sessionFactory = sessionFactory;
         this.registry = registry;
+        this.sessionSupplier = LazyGet.of(sessionFactory::openSession)
+                .withTest(SharedSessionContract::isOpen);
     }
 
     @Override
     public <T> T runTx(Process<T> callable) {
-        try (final Session session = sessionFactory.openSession()) {
+        try (SupplierLazyGet<Session> get = sessionSupplier;
+             final Session session = get.get()) {
             final Transaction tx = session.beginTransaction();
             try {
                 final T process = callable.process(session);
@@ -53,7 +58,8 @@ public class BaseHiBatisTemplate implements HiBatisTemplate {
 
     @Override
     public <T> T runNonTx(Process<T> callable) {
-        try (final Session session = sessionFactory.openSession()) {
+        try (SupplierLazyGet<Session> get = sessionSupplier;
+             final Session session = get.get()) {
             try {
                 return callable.process(session);
             } catch (Exception e) {
@@ -66,7 +72,7 @@ public class BaseHiBatisTemplate implements HiBatisTemplate {
     @Override
     public <T> T createDao(Class<T> daoInf, Session session) throws HibatisException {
         try {
-            return registry.getNewDao(daoInf, session);
+            return registry.getNewDao(daoInf, sessionSupplier);
         } catch (Exception e) {
             LOGGER.error("get Dao error", e);
             throw new HibatisException(e);
