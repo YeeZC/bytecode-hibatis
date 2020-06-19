@@ -16,7 +16,7 @@ public class BiFunctionLazyGet<P, P2, T> extends LazyGet<T> {
 
     public T get(P p, P2 p2) {
         synchronized (this) {
-            if (null == element) {
+            if (predicate.test(element)) {
                 element = fn.apply(p, p2);
             }
         }

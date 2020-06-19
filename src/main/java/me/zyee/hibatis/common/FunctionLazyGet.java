@@ -17,7 +17,7 @@ public class FunctionLazyGet<P, T> extends LazyGet<T> {
 
     public T get(P p) {
         synchronized (this) {
-            if (!predicate.test(element)) {
+            if (predicate.test(element)) {
                 element = fn.apply(p);
             }
         }

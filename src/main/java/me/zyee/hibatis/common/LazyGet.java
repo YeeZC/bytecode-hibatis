@@ -13,13 +13,13 @@ import java.util.function.Supplier;
  **/
 public abstract class LazyGet<T> implements AutoCloseable {
     protected volatile T element;
-    protected Predicate<T> predicate = ObjectUtils::isNotEmpty;
+    protected Predicate<T> predicate = ObjectUtils::isEmpty;
 
     protected LazyGet() {
     }
 
     public <Get extends LazyGet<T>> Get withTest(Predicate<T> predicate) {
-        this.predicate = element -> ObjectUtils.isNotEmpty(element) && predicate.test(element);
+        this.predicate = element -> ObjectUtils.isEmpty(element) || predicate.test(element);
         return (Get) this;
     }
 

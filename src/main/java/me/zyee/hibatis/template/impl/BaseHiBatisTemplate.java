@@ -8,7 +8,6 @@ import me.zyee.hibatis.template.HiBatisTemplate;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.SharedSessionContract;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,7 @@ public class BaseHiBatisTemplate implements HiBatisTemplate {
     public BaseHiBatisTemplate(SessionFactory sessionFactory, DaoRegistry registry) {
         this.registry = registry;
         this.sessionSupplier = LazyGet.of(sessionFactory::openSession)
-                .withTest(SharedSessionContract::isOpen);
+                .withTest(session -> !session.isOpen());
     }
 
     @Override

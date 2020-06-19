@@ -17,7 +17,7 @@ public class SupplierLazyGet<T> extends LazyGet<T> {
 
     public T get() {
         synchronized (this) {
-            if (!predicate.test(element)) {
+            if (predicate.test(element)) {
                 element = supplier.get();
             }
         }
