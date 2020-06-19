@@ -9,18 +9,20 @@ public class PageHelper {
     private static final ThreadLocal<Page> LOCAL_PAGE = new ThreadLocal<>();
 
     public static void startPage(int page, int size) {
-        final Page p = new Page();
-        p.setPage(page);
-        p.setSize(size);
-        LOCAL_PAGE.set(p);
+        if (page >= 0 && size > 0) {
+            final Page p = new Page();
+            p.setPage(page);
+            p.setSize(size);
+            LOCAL_PAGE.set(p);
+        }
     }
 
 
-    public static Page get() {
+    public static Page getPage() {
         return LOCAL_PAGE.get();
     }
 
-    public static void clear() {
+    public static void removeLocalPage() {
         LOCAL_PAGE.remove();
     }
 }

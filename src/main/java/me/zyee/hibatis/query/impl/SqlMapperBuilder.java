@@ -1,5 +1,6 @@
 package me.zyee.hibatis.query.impl;
 
+import me.zyee.hibatis.bytecode.HibatisGenerator;
 import me.zyee.hibatis.dao.registry.MapRegistry;
 import me.zyee.hibatis.query.MapperBuilder;
 import me.zyee.hibatis.query.PageQuery;
@@ -52,15 +53,16 @@ public class SqlMapperBuilder implements MapperBuilder {
     @Override
     public SqlMapper build() {
 
-        BiFunction<Session, String, Query> createQuery = ((session, s) -> {
-            final Query query = sql ? session.createSQLQuery(s) : session.createQuery(s);
-            final Optional<Page> opt = Optional.ofNullable(PageHelper.get());
+        BiFunction<Session, String, Query<?>> createQuery = ((session, s) -> {
+            final Query<?> query = sql ? session.createSQLQuery(s) : session.createQuery(s);
+            final Optional<Page> opt = Optional.ofNullable(PageHelper.getPage());
             if (opt.isPresent()) {
                 final Page page = opt.get();
                 try {
                     query.setFirstResult(page.getPage() * page.getSize())
                             .setMaxResults(page.getSize());
-                    return (Query) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{PageQuery.class, Query.class},
+                    return (Query<?>) Proxy.newProxyInstance(HibatisGenerator.getDefaultClassLoader(),
+                            new Class[]{PageQuery.class, Query.class},
                             (proxy, method, args) -> {
                                 final Class<?> declaringClass = method.getDeclaringClass();
                                 if (ClassUtils.isAssignable(declaringClass, Query.class)
@@ -74,7 +76,7 @@ public class SqlMapperBuilder implements MapperBuilder {
                                 return null;
                             });
                 } finally {
-                    PageHelper.clear();
+                    PageHelper.removeLocalPage();
                 }
             }
             return query;

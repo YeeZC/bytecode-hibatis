@@ -1,5 +1,6 @@
 package me.zyee.hibatis.dao.scaner;
 
+import me.zyee.hibatis.bytecode.HibatisGenerator;
 import me.zyee.hibatis.dao.DaoInfo;
 import me.zyee.hibatis.parser.DomParser;
 
@@ -26,7 +27,7 @@ import java.util.stream.Stream;
  **/
 public class DaoScanner {
     public static List<DaoInfo> scan(String path, String filePattern) {
-        ClassLoader loader = getDefaultClassLoader();
+        ClassLoader loader = HibatisGenerator.getDefaultClassLoader();
         URL resource;
         if (null != loader) {
             resource = loader.getResource(path);
@@ -63,27 +64,6 @@ public class DaoScanner {
             }
 
         }
-    }
-
-    private static ClassLoader getDefaultClassLoader() {
-        ClassLoader cl = null;
-
-        try {
-            cl = Thread.currentThread().getContextClassLoader();
-        } catch (Throwable ignore) {
-        }
-
-        if (cl == null) {
-            cl = DaoScanner.class.getClassLoader();
-            if (cl == null) {
-                try {
-                    cl = ClassLoader.getSystemClassLoader();
-                } catch (Throwable ignore) {
-                }
-            }
-        }
-
-        return cl;
     }
 
     /**

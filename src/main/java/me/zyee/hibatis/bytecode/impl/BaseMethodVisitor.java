@@ -10,7 +10,7 @@ import io.airlift.bytecode.Scope;
 import io.airlift.bytecode.Variable;
 import io.airlift.bytecode.expression.BytecodeExpression;
 import io.airlift.bytecode.expression.BytecodeExpressions;
-import me.zyee.hibatis.bytecode.DaoGenerator;
+import me.zyee.hibatis.bytecode.HibatisGenerator;
 import me.zyee.hibatis.bytecode.MethodVisitor;
 import me.zyee.hibatis.bytecode.compiler.dao.ParameterCompiler;
 import me.zyee.hibatis.dao.DaoMethodInfo;
@@ -93,7 +93,7 @@ public abstract class BaseMethodVisitor implements MethodVisitor {
                 ParameterizedType.type(method.getReturnType()), parameters);
         this.scope = methodDefinition.getScope();
         this.body = methodDefinition.getBody();
-        this.query = DaoGenerator.createVariable(scope, queryClass, "query");
+        this.query = HibatisGenerator.createVariable(scope, queryClass, "query");
         String hql = methodInfo.getHql().trim();
         body.append(query.set(scope.getThis().getField("session", Session.class).invoke(createQueryMethod(),
                 BytecodeExpressions.constantString(hql))));

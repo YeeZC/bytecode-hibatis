@@ -11,7 +11,7 @@ import io.airlift.bytecode.ParameterizedType;
 import io.airlift.bytecode.Scope;
 import io.airlift.bytecode.Variable;
 import io.airlift.bytecode.expression.BytecodeExpressions;
-import me.zyee.hibatis.bytecode.DaoGenerator;
+import me.zyee.hibatis.bytecode.HibatisGenerator;
 import me.zyee.hibatis.bytecode.annotation.Order;
 import me.zyee.hibatis.bytecode.compiler.Compiler;
 import me.zyee.hibatis.dao.DaoMapInfo;
@@ -49,7 +49,7 @@ public class BeanCompiler implements Compiler<DaoMapInfo, ClassDefinition> {
         final String mapId = mapInfo.getMapId();
         final String className = firstCharUpper(mapId);
         ClassDefinition classDefinition = new ClassDefinition(Access.a(Access.PRIVATE, Access.FINAL),
-                DaoGenerator.makeClassName("bean", className),
+                HibatisGenerator.makeClassName("bean", className),
                 ParameterizedType.type(Object.class),
                 ParameterizedType.type(ObjectCast.class));
         classDefinition.declareDefaultConstructor(Access.a(Access.PUBLIC));

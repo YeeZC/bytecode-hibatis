@@ -1,9 +1,8 @@
 package me.zyee.hibatis.dao.registry;
 
 import io.airlift.bytecode.BytecodeBlock;
-import io.airlift.bytecode.ClassGenerator;
-import io.airlift.bytecode.DynamicClassLoader;
 import io.airlift.bytecode.Scope;
+import me.zyee.hibatis.bytecode.HibatisGenerator;
 import me.zyee.hibatis.bytecode.compiler.bean.BeanCompiler;
 import me.zyee.hibatis.bytecode.compiler.bean.ObjectCast;
 import me.zyee.hibatis.bytecode.compiler.dao.MapCompiler;
@@ -12,8 +11,6 @@ import me.zyee.hibatis.dao.DaoMapInfo;
 import me.zyee.hibatis.exception.ByteCodeGenerateException;
 import me.zyee.hibatis.exception.HibatisNotFountException;
 
-import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -38,9 +35,8 @@ public class MapRegistry {
         classSuppliers.put(mapInfo.getMapId(),
                 () -> Optional.<Class<?>>ofNullable(mapInfo.getClassName()).orElse(HashMap.class));
         beanContainer.put(mapInfo.getMapId(), LazyGet.of(loader -> {
-            final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(loader, Collections.emptyMap());
             final BeanCompiler beanCompiler = new BeanCompiler();
-            return ClassGenerator.classGenerator(dynamicClassLoader).dumpClassFilesTo(Paths.get("/Users/yee/work/tmp1")).defineClass(beanCompiler.compile(mapInfo), ObjectCast.class);
+            return HibatisGenerator.generate(beanCompiler.compile(mapInfo), ObjectCast.class, loader);
         }));
     }
 

@@ -5,7 +5,7 @@ import io.airlift.bytecode.ClassDefinition;
 import io.airlift.bytecode.FieldDefinition;
 import io.airlift.bytecode.Parameter;
 import io.airlift.bytecode.ParameterizedType;
-import me.zyee.hibatis.bytecode.DaoGenerator;
+import me.zyee.hibatis.bytecode.HibatisGenerator;
 import me.zyee.hibatis.bytecode.compiler.Compiler;
 import me.zyee.hibatis.bytecode.compiler.impl.ConstructorCompiler;
 import me.zyee.hibatis.dao.DaoInfo;
@@ -33,7 +33,7 @@ public class DaoCompiler implements Compiler<DaoInfo, ClassDefinition> {
     public ClassDefinition compile(DaoInfo daoInfo) throws HibatisException {
         final Class<?> inf = daoInfo.getId();
         ClassDefinition classDefinition = new ClassDefinition(Access.a(Access.PUBLIC, Access.FINAL),
-                DaoGenerator.makeClassName("dao", inf.getSimpleName()),
+                HibatisGenerator.makeClassName("dao", inf.getSimpleName()),
                 ParameterizedType.type(Object.class),
                 ParameterizedType.type(inf));
         final FieldDefinition session = classDefinition.declareField(Access.a(Access.PRIVATE, Access.FINAL),

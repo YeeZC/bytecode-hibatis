@@ -1,9 +1,7 @@
 package me.zyee.hibatis.dao.registry;
 
 import io.airlift.bytecode.ClassDefinition;
-import io.airlift.bytecode.ClassGenerator;
-import io.airlift.bytecode.DynamicClassLoader;
-import me.zyee.hibatis.bytecode.DaoGenerator;
+import me.zyee.hibatis.bytecode.HibatisGenerator;
 import me.zyee.hibatis.bytecode.compiler.dao.DaoCompiler;
 import me.zyee.hibatis.dao.DaoInfo;
 import me.zyee.hibatis.exception.ByteCodeGenerateException;
@@ -14,8 +12,6 @@ import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,7 +29,7 @@ public class DaoRegistry {
         final Class<?> inf = dao.getId();
         container.put(inf, LazyGet.of(() -> {
             try {
-                return DaoGenerator.generate(dao);
+                return HibatisGenerator.generate(dao);
             } catch (Exception e) {
                 LOGGER.error("generate error", e);
                 throw new RuntimeException(e);
@@ -43,11 +39,7 @@ public class DaoRegistry {
         newContainer.put(inf, LazyGet.of(() -> {
             try {
                 final ClassDefinition compile = new DaoCompiler().compile(dao);
-                final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(DaoGenerator.class.getClassLoader()
-                        , Collections.emptyMap());
-                // 生成方法
-                return ClassGenerator.classGenerator(dynamicClassLoader)
-                        .dumpClassFilesTo(Paths.get("/Users/yee/work/tmp1")).defineClass(compile, dao.getId());
+                return HibatisGenerator.generate(compile, dao.getId(), null);
             } catch (HibatisException e) {
                 throw new RuntimeException(e);
             }

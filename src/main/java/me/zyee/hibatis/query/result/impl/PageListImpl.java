@@ -61,6 +61,11 @@ public class PageListImpl<T> extends ArrayList<T> implements PageList<T> {
     }
 
     @Override
+    public int size() {
+        return content.get().size();
+    }
+
+    @Override
     public boolean add(T t) {
         throw new UnsupportedOperationException();
     }

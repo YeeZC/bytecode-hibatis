@@ -9,7 +9,7 @@ import io.airlift.bytecode.Parameter;
 import io.airlift.bytecode.ParameterizedType;
 import io.airlift.bytecode.Scope;
 import io.airlift.bytecode.expression.BytecodeExpressions;
-import me.zyee.hibatis.bytecode.DaoGenerator;
+import me.zyee.hibatis.bytecode.HibatisGenerator;
 import me.zyee.hibatis.dao.DaoInfo;
 import me.zyee.hibatis.dao.DaoMethodInfo;
 import me.zyee.hibatis.dao.registry.MapRegistry;
@@ -43,7 +43,7 @@ public class DefaultDaoVisitor {
         final Class<?> entity = info.getEntity();
         // public final class TestDaoImpl
         ClassDefinition classDefinition = new ClassDefinition(Access.a(Access.PUBLIC, Access.FINAL),
-                DaoGenerator.makeClassName("dao", inf.getSimpleName()),
+                HibatisGenerator.makeClassName("dao", inf.getSimpleName()),
                 ParameterizedType.type(Object.class),
                 ParameterizedType.type(inf));
         // private Session session;

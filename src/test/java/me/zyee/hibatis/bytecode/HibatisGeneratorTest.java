@@ -17,7 +17,7 @@ import java.util.Collections;
  * @version 1.0
  * Created by yee on 2020/6/11
  */
-public class DaoGeneratorTest {
+public class HibatisGeneratorTest {
 
     /**
      * 使用方法：
@@ -103,7 +103,7 @@ public class DaoGeneratorTest {
 //        final DaoRegistry daoRegistry = new DaoRegistry();
 ////        daoRegistry.addDao(parse);
         final ClassDefinition compile = new DaoCompiler().compile(parse);
-        final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(DaoGenerator.class.getClassLoader()
+        final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(HibatisGenerator.class.getClassLoader()
                 , Collections.emptyMap());
         // 生成方法
         ClassGenerator.classGenerator(dynamicClassLoader)

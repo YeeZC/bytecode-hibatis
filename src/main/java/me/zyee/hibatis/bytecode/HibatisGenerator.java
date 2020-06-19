@@ -23,7 +23,7 @@ import java.util.Optional;
  * @author yee
  * Created by yee on 2020/6/11
  **/
-public class DaoGenerator {
+public class HibatisGenerator {
     /**
      * 生成Dao实现类
      *
@@ -34,18 +34,28 @@ public class DaoGenerator {
      */
     @Deprecated
     public static Class<?> generate(DaoInfo info, Path out) throws ByteCodeGenerateException {
-        // 动态字节码生成的classLoader
-        final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(DaoGenerator.class.getClassLoader()
-                , Collections.emptyMap());
         // 实体类的描述
         final ClassDefinition visit = new DefaultDaoVisitor().visit(info);
+        return generate(visit, info.getId(), null, out);
         // 生成方法
-        return ClassGenerator.classGenerator(dynamicClassLoader).dumpClassFilesTo(Optional.ofNullable(out)).defineClass(visit, info.getId());
     }
 
     @Deprecated
     public static Class<?> generate(DaoInfo info) throws ByteCodeGenerateException {
         return generate(info, null);
+    }
+
+    public static Class<?> generate(ClassDefinition definition, Class<?> inf, ClassLoader classLoader, Path out) {
+        final ClassLoader loader = Optional.ofNullable(classLoader)
+                .orElse(getDefaultClassLoader());
+        final DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(loader, Collections.emptyMap());
+        return ClassGenerator.classGenerator(dynamicClassLoader)
+                .dumpClassFilesTo(Optional.ofNullable(out))
+                .defineClass(definition, inf);
+    }
+
+    public static Class<?> generate(ClassDefinition definition, Class<?> inf, ClassLoader classLoader) {
+        return generate(definition, inf, classLoader, null);
     }
 
     /**
@@ -65,5 +75,26 @@ public class DaoGenerator {
             return scope.createTempVariable(clazz);
         }
         return scope.declareVariable(clazz, name);
+    }
+
+    public static ClassLoader getDefaultClassLoader() {
+        ClassLoader cl = null;
+
+        try {
+            cl = Thread.currentThread().getContextClassLoader();
+        } catch (Throwable ignore) {
+        }
+
+        if (cl == null) {
+            cl = HibatisGenerator.class.getClassLoader();
+            if (cl == null) {
+                try {
+                    cl = ClassLoader.getSystemClassLoader();
+                } catch (Throwable ignore) {
+                }
+            }
+        }
+
+        return cl;
     }
 }

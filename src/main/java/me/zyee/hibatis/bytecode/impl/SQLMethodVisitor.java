@@ -3,7 +3,7 @@ package me.zyee.hibatis.bytecode.impl;
 import io.airlift.bytecode.ClassDefinition;
 import io.airlift.bytecode.Variable;
 import io.airlift.bytecode.expression.BytecodeExpressions;
-import me.zyee.hibatis.bytecode.DaoGenerator;
+import me.zyee.hibatis.bytecode.HibatisGenerator;
 import me.zyee.hibatis.dao.DaoMethodInfo;
 import me.zyee.hibatis.dao.registry.MapRegistry;
 import me.zyee.hibatis.exception.ByteCodeGenerateException;
@@ -61,25 +61,25 @@ public class SQLMethodVisitor extends BaseMethodVisitor {
         final Class<?> resultType = methodInfo.getResultType();
         if (StringUtils.isNotEmpty(resultMap)) {
             body.append(registry.getMapBlock(resultMap, scope, false));
-            final Variable tmp = DaoGenerator.createVariable(scope, List.class, "result");
+            final Variable tmp = HibatisGenerator.createVariable(scope, List.class, "result");
             body.append(tmp.set(query.invoke("getResultList", List.class)));
             return tmp;
         } else if (null != resultType) {
-            final Variable result = DaoGenerator.createVariable(scope, List.class, "result");
+            final Variable result = HibatisGenerator.createVariable(scope, List.class, "result");
             body.append(query.invoke(setTrans,
                     BytecodeExpressions.newInstance(HibatisReturnClassTransformer.class,
                             BytecodeExpressions.constantClass(resultType))));
             body.append(result.set(query.invoke("getResultList", List.class)));
             return result;
         } else if (componentClass != null) {
-            final Variable result = DaoGenerator.createVariable(scope, List.class, "result");
+            final Variable result = HibatisGenerator.createVariable(scope, List.class, "result");
             body.append(query.invoke(setTrans,
                     BytecodeExpressions.newInstance(HibatisReturnClassTransformer.class,
                             BytecodeExpressions.constantClass(componentClass))));
             body.append(result.set(query.invoke("getResultList", List.class)));
             return result;
         } else {
-            final Variable result = DaoGenerator.createVariable(scope, List.class, "result");
+            final Variable result = HibatisGenerator.createVariable(scope, List.class, "result");
             body.append(query.invoke(setTrans,
                     BytecodeExpressions.newInstance(HibatisReturnClassTransformer.class,
                             scope.getThis().getField("entityClass", Class.class))));

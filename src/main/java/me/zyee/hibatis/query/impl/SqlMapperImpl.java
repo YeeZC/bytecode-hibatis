@@ -16,9 +16,9 @@ import java.util.function.BiFunction;
  * Create by yee on 2020/6/18
  */
 public class SqlMapperImpl<T> implements SqlMapper<T> {
-    protected BiFunction<Session, String, Query> createQuery;
+    protected BiFunction<Session, String, Query<?>> createQuery;
 
-    public SqlMapperImpl(BiFunction<Session, String, Query> createQuery) {
+    public SqlMapperImpl(BiFunction<Session, String, Query<?>> createQuery) {
         this.createQuery = createQuery;
     }
 
@@ -54,7 +54,7 @@ public class SqlMapperImpl<T> implements SqlMapper<T> {
     @Override
     public long getCount(Session session, String sql, Map param) {
         String countSql = "select count(*) " + sql.substring(sql.toLowerCase().indexOf("from"));
-        final Query apply = createQuery.apply(session, countSql);
+        final Query<?> apply = createQuery.apply(session, countSql);
         apply.setProperties(param);
         return ((Number) apply.getSingleResult()).longValue();
     }

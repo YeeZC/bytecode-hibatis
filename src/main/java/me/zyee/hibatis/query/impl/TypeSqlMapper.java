@@ -18,16 +18,16 @@ import java.util.function.BiFunction;
 public class TypeSqlMapper extends SqlMapperImpl<Object> {
     private final Class<?> returnType;
 
-    public TypeSqlMapper(Class<?> returnType, BiFunction<Session, String, Query> createQuery) {
+    public TypeSqlMapper(Class<?> returnType, BiFunction<Session, String, Query<?>> createQuery) {
         super(createQuery);
         this.returnType = returnType;
     }
 
     @Override
     public List select(Session session, String sql, Map param) {
-        final Query query = getQuery(session, sql, param);
+        final Query<?> query = getQuery(session, sql, param);
         if (query instanceof PageQuery) {
-            final PageListImpl<?> ts = new PageListImpl<>(() -> (List<?>) query.getResultList(),
+            final PageListImpl<?> ts = new PageListImpl<>(query::getResultList,
                     () -> getCount(session, sql, param));
             ts.setCurrentPage(((PageQuery) query).getPage());
             ts.setPageSize(((PageQuery) query).getSize());
@@ -36,8 +36,8 @@ public class TypeSqlMapper extends SqlMapperImpl<Object> {
         return query.getResultList();
     }
 
-    private Query getQuery(Session session, String sql, Map param) {
-        final Query<?> query = (Query<?>) createQuery.apply(session, sql);
+    private Query<?> getQuery(Session session, String sql, Map param) {
+        final Query<?> query = createQuery.apply(session, sql);
         query.setProperties(param);
         query.setResultTransformer(
                 new HibatisReturnClassTransformer(

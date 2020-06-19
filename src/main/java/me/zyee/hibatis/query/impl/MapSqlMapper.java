@@ -23,7 +23,7 @@ public class MapSqlMapper extends SqlMapperImpl {
     private final MapRegistry mapRegistry;
     private final String mapId;
 
-    public MapSqlMapper(MapRegistry mapRegistry, String mapId, BiFunction<Session, String, Query> createQuery) {
+    public MapSqlMapper(MapRegistry mapRegistry, String mapId, BiFunction<Session, String, Query<?>> createQuery) {
         super(createQuery);
         this.mapRegistry = mapRegistry;
         this.mapId = mapId;
@@ -31,22 +31,23 @@ public class MapSqlMapper extends SqlMapperImpl {
 
     @Override
     public List select(Session session, String sql, Map param) {
-        final Query query = getQuery(session, sql, param);
+        final Query<?> query = getQuery(session, sql, param);
         if (query instanceof PageQuery) {
-            final PageListImpl<?> ts = new PageListImpl<>(() -> (List<?>) query.getResultStream()
-                    .map(o -> ((ObjectCast) o).cast())
-                    .collect(Collectors.toList()),
+            final PageListImpl<?> ts = new PageListImpl<>(() ->
+                    query.getResultStream()
+                            .map(o -> ((ObjectCast<?>) o).cast())
+                            .collect(Collectors.toList()),
                     () -> getCount(session, sql, param));
             ts.setCurrentPage(((PageQuery) query).getPage());
             ts.setPageSize(((PageQuery) query).getSize());
             return ts;
         }
-        return (List) query.getResultStream().map(o -> ((ObjectCast) o).cast())
+        return query.getResultStream().map(o -> ((ObjectCast<?>) o).cast())
                 .collect(Collectors.toList());
     }
 
-    private Query getQuery(Session session, String sql, Map param) {
-        final Query query = (Query) createQuery.apply(session, sql);
+    private Query<?> getQuery(Session session, String sql, Map param) {
+        final Query<?> query = (Query<?>) createQuery.apply(session, sql);
         query.setProperties(param);
         try {
             final ClassLoader classLoader = session.getClass().getClassLoader();
@@ -62,6 +63,6 @@ public class MapSqlMapper extends SqlMapperImpl {
 
     @Override
     public Object selectOne(Session session, String sql, Map param) {
-        return ((ObjectCast) getQuery(session, sql, param).getSingleResult()).cast();
+        return ((ObjectCast<?>) getQuery(session, sql, param).getSingleResult()).cast();
     }
 }
