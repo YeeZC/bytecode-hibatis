@@ -19,7 +19,6 @@ import me.zyee.hibatis.exception.HibatisException;
 import me.zyee.hibatis.query.ListSelectMapper;
 import me.zyee.hibatis.query.MapperBuilder;
 import me.zyee.hibatis.query.OneSelectMapper;
-import me.zyee.hibatis.query.PageSelectMapper;
 import me.zyee.hibatis.query.SqlMapper;
 import me.zyee.hibatis.query.impl.SqlMapperBuilder;
 import org.apache.commons.lang3.ClassUtils;
@@ -92,9 +91,9 @@ public class MethodCompiler implements NoRetCompiler<MethodCompiler.Context> {
             final Class<?> returnType = method.getReturnType();
             if (ClassUtils.isAssignable(returnType, Collection.class)
                     || ClassUtils.isAssignable(Collection.class, returnType)) {
-                final Variable mapper = scope.declareVariable(PageSelectMapper.class, "mapper");
-                body.append(mapper.set(builder.invoke("build", SqlMapper.class).cast(PageSelectMapper.class)));
-                body.append(mapper.invoke("selectPage", List.class,
+                final Variable mapper = scope.declareVariable(ListSelectMapper.class, "mapper");
+                body.append(mapper.set(builder.invoke("build", SqlMapper.class).cast(ListSelectMapper.class)));
+                body.append(mapper.invoke("select", List.class,
                         scope.getThis().getField("session", Session.class),
                         BytecodeExpressions.constantString(hql),
                         params)).retObject();

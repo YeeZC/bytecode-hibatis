@@ -7,7 +7,6 @@ package me.zyee.hibatis.query;
  */
 public interface SqlMapper<T> extends ListSelectMapper<T>,
         OneSelectMapper<T>,
-        PageSelectMapper<T>,
         CountMapper,
         UpdateMapper {
 
