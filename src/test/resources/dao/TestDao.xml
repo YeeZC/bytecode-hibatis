@@ -12,6 +12,9 @@
     <select id="getAllCount" native="true">
         select count(*) from test
     </select>
+    <select id="findAllNative" native="true" resultMap="all">
+        select * from test
+    </select>
     <select id="findById">
         from TestEntity where id = :id
     </select>

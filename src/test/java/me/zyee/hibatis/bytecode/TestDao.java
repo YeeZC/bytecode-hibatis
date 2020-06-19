@@ -2,6 +2,8 @@ package me.zyee.hibatis.bytecode;
 
 import me.zyee.hibatis.dao.annotation.Param;
 
+import java.util.List;
+
 /**
  * @author yee
  * @version 1.0
@@ -9,6 +11,8 @@ import me.zyee.hibatis.dao.annotation.Param;
  */
 public interface TestDao {
     TestBean[] findAll();
+
+    List<TestBean> findAllNative();
 
     int getAllCount();
 

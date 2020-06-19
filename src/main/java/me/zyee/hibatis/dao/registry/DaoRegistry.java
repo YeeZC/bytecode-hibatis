@@ -12,7 +12,6 @@ import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,7 +39,7 @@ public class DaoRegistry {
         newContainer.put(inf, LazyGet.of(() -> {
             try {
                 final ClassDefinition compile = new DaoCompiler().compile(dao);
-                return HibatisGenerator.generate(compile, dao.getId(), null, Paths.get("/Users/yee/work/tmp1"));
+                return HibatisGenerator.generate(compile, dao.getId(), null);
             } catch (HibatisException e) {
                 throw new RuntimeException(e);
             }
