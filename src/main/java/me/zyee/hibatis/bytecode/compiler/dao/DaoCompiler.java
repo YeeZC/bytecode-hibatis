@@ -1,10 +1,8 @@
 package me.zyee.hibatis.bytecode.compiler.dao;
 
-import io.airlift.bytecode.Access;
 import io.airlift.bytecode.ClassDefinition;
 import io.airlift.bytecode.FieldDefinition;
 import io.airlift.bytecode.Parameter;
-import io.airlift.bytecode.ParameterizedType;
 import me.zyee.hibatis.bytecode.HibatisGenerator;
 import me.zyee.hibatis.bytecode.compiler.Compiler;
 import me.zyee.hibatis.bytecode.compiler.impl.ConstructorCompiler;
@@ -21,6 +19,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.airlift.bytecode.Access.FINAL;
+import static io.airlift.bytecode.Access.PRIVATE;
+import static io.airlift.bytecode.Access.PUBLIC;
+import static io.airlift.bytecode.Access.a;
+import static io.airlift.bytecode.ParameterizedType.type;
+
 /**
  * @author yee
  * @version 1.0
@@ -32,13 +36,13 @@ public class DaoCompiler implements Compiler<DaoInfo, ClassDefinition> {
     @Override
     public ClassDefinition compile(DaoInfo daoInfo) throws HibatisException {
         final Class<?> inf = daoInfo.getId();
-        ClassDefinition classDefinition = new ClassDefinition(Access.a(Access.PUBLIC, Access.FINAL),
+        ClassDefinition classDefinition = new ClassDefinition(a(PUBLIC, FINAL),
                 HibatisGenerator.makeClassName("dao", inf.getSimpleName()),
-                ParameterizedType.type(Object.class),
-                ParameterizedType.type(inf));
-        final FieldDefinition session = classDefinition.declareField(Access.a(Access.PRIVATE, Access.FINAL),
+                type(Object.class),
+                type(inf));
+        final FieldDefinition session = classDefinition.declareField(a(PRIVATE, FINAL),
                 "session", SupplierLazyGet.class);
-        final FieldDefinition mapRegistry = classDefinition.declareField(Access.a(Access.PRIVATE, Access.FINAL),
+        final FieldDefinition mapRegistry = classDefinition.declareField(a(PRIVATE, FINAL),
                 "mapRegistry", MapRegistry.class);
 
         compiler.compile(ConstructorCompiler.Context.newInstance(classDefinition)

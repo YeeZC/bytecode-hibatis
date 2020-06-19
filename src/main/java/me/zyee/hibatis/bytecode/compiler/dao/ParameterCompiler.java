@@ -3,7 +3,6 @@ package me.zyee.hibatis.bytecode.compiler.dao;
 import io.airlift.bytecode.BytecodeBlock;
 import io.airlift.bytecode.Parameter;
 import io.airlift.bytecode.Variable;
-import io.airlift.bytecode.expression.BytecodeExpressions;
 import me.zyee.hibatis.bytecode.compiler.impl.ByteCodeNodeCompiler;
 import me.zyee.hibatis.dao.annotation.Param;
 import me.zyee.hibatis.exception.HibatisException;
@@ -15,6 +14,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+
+import static io.airlift.bytecode.expression.BytecodeExpressions.constantString;
+import static io.airlift.bytecode.expression.BytecodeExpressions.constantTrue;
+import static io.airlift.bytecode.expression.BytecodeExpressions.invokeStatic;
 
 /**
  * @author yee
@@ -49,20 +52,20 @@ public class ParameterCompiler implements ByteCodeNodeCompiler<Parameter> {
                     for (Field field : fields) {
                         final Param param = field.getAnnotation(Param.class);
                         block.append(map.invoke(put,
-                                BytecodeExpressions.constantString(param.value()),
-                                BytecodeExpressions.invokeStatic(readField, parameter,
-                                        BytecodeExpressions.constantString(field.getName()),
-                                        BytecodeExpressions.constantTrue())));
+                                constantString(param.value()),
+                                invokeStatic(readField, parameter,
+                                        constantString(field.getName()),
+                                        constantTrue())));
                     }
                 } else {
                     block.append(map.invoke(put,
-                            BytecodeExpressions.constantString(name.replace(VAR_PREFIX, "")),
+                            constantString(name.replace(VAR_PREFIX, "")),
                             parameter));
                 }
 
             } else {
                 block.append(map.invoke(put,
-                        BytecodeExpressions.constantString(name),
+                        constantString(name),
                         parameter));
             }
             return block;

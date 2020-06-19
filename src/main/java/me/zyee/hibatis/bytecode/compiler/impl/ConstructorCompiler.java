@@ -1,13 +1,11 @@
 package me.zyee.hibatis.bytecode.compiler.impl;
 
-import io.airlift.bytecode.Access;
 import io.airlift.bytecode.BytecodeBlock;
 import io.airlift.bytecode.ClassDefinition;
 import io.airlift.bytecode.FieldDefinition;
 import io.airlift.bytecode.MethodDefinition;
 import io.airlift.bytecode.Parameter;
 import io.airlift.bytecode.Scope;
-import io.airlift.bytecode.expression.BytecodeExpressions;
 import me.zyee.hibatis.bytecode.compiler.NoRetCompiler;
 
 import java.util.ArrayList;
@@ -15,6 +13,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+
+import static io.airlift.bytecode.Access.PRIVATE;
+import static io.airlift.bytecode.Access.PUBLIC;
+import static io.airlift.bytecode.Access.STATIC;
+import static io.airlift.bytecode.Access.a;
+import static io.airlift.bytecode.expression.BytecodeExpressions.newInstance;
 
 /**
  * @author yee
@@ -24,10 +28,10 @@ import java.util.function.Function;
 public class ConstructorCompiler implements NoRetCompiler<ConstructorCompiler.Context> {
     private static final BiConsumer<ClassDefinition, Parameter[]> COMPILER = (definition, parameters) -> {
 
-        final MethodDefinition newInstance = definition.declareMethod(Access.a(Access.PUBLIC, Access.STATIC),
+        final MethodDefinition newInstance = definition.declareMethod(a(PUBLIC, STATIC),
                 "newInstance", definition.getType(), parameters);
         newInstance.getBody()
-                .append(BytecodeExpressions.newInstance(definition.getType(), parameters))
+                .append(newInstance(definition.getType(), parameters))
                 .retObject();
     };
 
@@ -37,9 +41,9 @@ public class ConstructorCompiler implements NoRetCompiler<ConstructorCompiler.Co
         final ClassDefinition classDefinition = context.getClassDefinition();
 
         if (parameters.length == 0) {
-            COMPILER.accept(classDefinition.declareDefaultConstructor(Access.a(Access.PRIVATE)), parameters);
+            COMPILER.accept(classDefinition.declareDefaultConstructor(a(PRIVATE)), parameters);
         } else {
-            final MethodDefinition constructor = classDefinition.declareConstructor(Access.a(Access.PRIVATE),
+            final MethodDefinition constructor = classDefinition.declareConstructor(a(PRIVATE),
                     parameters);
 
             final BytecodeBlock block = constructor.getBody().append(constructor.getThis())
