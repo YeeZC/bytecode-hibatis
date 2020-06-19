@@ -1,6 +1,8 @@
 package me.zyee.hibatis.query.impl;
 
+import me.zyee.hibatis.query.PageQuery;
 import me.zyee.hibatis.query.SqlMapper;
+import me.zyee.hibatis.query.result.impl.PageListImpl;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 
@@ -24,6 +26,13 @@ public class SqlMapperImpl<T> implements SqlMapper<T> {
     public List<T> select(Session session, String sql, Map param) {
         final Query<?> query = createQuery.apply(session, sql);
         query.setProperties(param);
+        if (query instanceof PageQuery) {
+            final PageListImpl<T> ts = new PageListImpl<>(() -> (List<T>) query.getResultList(),
+                    () -> getCount(session, sql, param));
+            ts.setCurrentPage(((PageQuery) query).getPage());
+            ts.setPageSize(((PageQuery) query).getSize());
+            return ts;
+        }
         return (List<T>) query.getResultList();
     }
 
@@ -41,4 +50,12 @@ public class SqlMapperImpl<T> implements SqlMapper<T> {
         return query.executeUpdate();
     }
 
+
+    @Override
+    public long getCount(Session session, String sql, Map param) {
+        String countSql = "select count(*) " + sql.substring(sql.toLowerCase().indexOf("from"));
+        final Query apply = createQuery.apply(session, countSql);
+        apply.setProperties(param);
+        return ((Number) apply.getSingleResult()).longValue();
+    }
 }

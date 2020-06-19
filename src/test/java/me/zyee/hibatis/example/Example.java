@@ -1,14 +1,18 @@
 package me.zyee.hibatis.example;
 
+import me.zyee.hibatis.bytecode.TestBean;
 import me.zyee.hibatis.bytecode.TestDao;
 import me.zyee.hibatis.bytecode.TestEntity;
 import me.zyee.hibatis.config.HiBatisConfig;
 import me.zyee.hibatis.exception.HibatisException;
+import me.zyee.hibatis.query.page.PageHelper;
+import me.zyee.hibatis.query.page.PageInfo;
 import me.zyee.hibatis.template.HiBatisTemplate;
 import me.zyee.hibatis.template.factory.TemplateFactory;
 import org.hibernate.cfg.Configuration;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * @author yee
@@ -22,7 +26,11 @@ public class Example {
         hiBatisConfig.setConfiguration(getConfiguration());
         final TemplateFactory templateFactory = hiBatisConfig.buildTemplateFactory();
         final HiBatisTemplate template = templateFactory.createTemplate();
-        final Object count = template.runNonTx(TestDao.class, ((dao, session) -> dao.findById("111")));
+        final Object count = template.runNonTx(TestDao.class, ((dao, session) -> {
+            PageHelper.startPage(0, 10);
+            final List<TestBean> all = dao.findAll();
+            return PageInfo.of(all);
+        }));
         System.out.println("find count " + count);
     }
 

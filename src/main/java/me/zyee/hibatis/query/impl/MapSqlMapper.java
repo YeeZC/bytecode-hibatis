@@ -3,6 +3,8 @@ package me.zyee.hibatis.query.impl;
 import me.zyee.hibatis.bytecode.compiler.bean.ObjectCast;
 import me.zyee.hibatis.dao.registry.MapRegistry;
 import me.zyee.hibatis.exception.ByteCodeGenerateException;
+import me.zyee.hibatis.query.PageQuery;
+import me.zyee.hibatis.query.result.impl.PageListImpl;
 import me.zyee.hibatis.transformer.HibatisReturnClassTransformer;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -30,7 +32,15 @@ public class MapSqlMapper extends SqlMapperImpl {
     @Override
     public List select(Session session, String sql, Map param) {
         final Query query = getQuery(session, sql, param);
-
+        if (query instanceof PageQuery) {
+            final PageListImpl<?> ts = new PageListImpl<>(() -> (List<?>) query.getResultStream()
+                    .map(o -> ((ObjectCast) o).cast())
+                    .collect(Collectors.toList()),
+                    () -> getCount(session, sql, param));
+            ts.setCurrentPage(((PageQuery) query).getPage());
+            ts.setPageSize(((PageQuery) query).getSize());
+            return ts;
+        }
         return (List) query.getResultStream().map(o -> ((ObjectCast) o).cast())
                 .collect(Collectors.toList());
     }
