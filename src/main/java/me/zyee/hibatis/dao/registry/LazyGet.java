@@ -1,7 +1,10 @@
 package me.zyee.hibatis.dao.registry;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -10,8 +13,14 @@ import java.util.function.Supplier;
  **/
 public abstract class LazyGet<T> {
     protected volatile T element;
+    protected Predicate<T> predicate = ObjectUtils::isNotEmpty;
 
     private LazyGet() {
+    }
+
+    public <Get extends LazyGet<T>> Get withTest(Predicate<T> predicate) {
+        this.predicate = element -> ObjectUtils.isNotEmpty(element) && predicate.test(element);
+        return (Get) this;
     }
 
     public static <T> SupplierLazyGet<T> of(Supplier<T> supplier) {
@@ -29,13 +38,14 @@ public abstract class LazyGet<T> {
     public static class SupplierLazyGet<T> extends LazyGet<T> {
         private final Supplier<T> supplier;
 
+
         private SupplierLazyGet(Supplier<T> supplier) {
             this.supplier = supplier;
         }
 
         public T get() {
             synchronized (this) {
-                if (null == element) {
+                if (!predicate.test(element)) {
                     element = supplier.get();
                 }
             }
@@ -50,9 +60,10 @@ public abstract class LazyGet<T> {
             this.fn = fn;
         }
 
+
         public T get(P p) {
             synchronized (this) {
-                if (null == element) {
+                if (!predicate.test(element)) {
                     element = fn.apply(p);
                 }
             }
