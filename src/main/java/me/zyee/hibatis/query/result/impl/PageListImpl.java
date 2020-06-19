@@ -74,4 +74,14 @@ public class PageListImpl<T> extends ArrayList<T> implements PageList<T> {
     public boolean addAll(Collection<? extends T> c) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public Object[] toArray() {
+        return this.content.get().toArray();
+    }
+
+    @Override
+    public <T1> T1[] toArray(T1[] a) {
+        return this.content.get().toArray(a);
+    }
 }

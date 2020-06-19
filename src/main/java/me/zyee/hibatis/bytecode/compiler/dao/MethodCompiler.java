@@ -22,6 +22,7 @@ import me.zyee.hibatis.query.OneSelectMapper;
 import me.zyee.hibatis.query.SqlMapper;
 import me.zyee.hibatis.query.impl.SqlMapperBuilder;
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
 import org.hibernate.Session;
 
 import java.lang.reflect.Method;
@@ -78,6 +79,7 @@ public class MethodCompiler implements NoRetCompiler<MethodCompiler.Context> {
                     BytecodeExpressions.constantString(hql),
                     params)).retInt();
         } else {
+            Method toArray = MethodUtils.getAccessibleMethod(List.class, "toArray", Object[].class);
             Optional.ofNullable(methodInfo.getResultMap()).ifPresent(mapId -> {
                 body.append(builder.invoke("withResultMap",
                         MapperBuilder.class, BytecodeExpressions.constantString(mapId)));
@@ -105,7 +107,9 @@ public class MethodCompiler implements NoRetCompiler<MethodCompiler.Context> {
                 body.append(mapper.invoke("select", List.class,
                         scope.getThis().getField("session", Session.class),
                         BytecodeExpressions.constantString(hql),
-                        params).invoke("toArray", Object[].class).cast(returnType)).retObject();
+                        params).invoke(toArray,
+                        BytecodeExpressions.newArray(ParameterizedType.type(returnType), 0))
+                        .cast(returnType)).retObject();
             } else {
                 final Variable mapper = scope.declareVariable(OneSelectMapper.class, "mapper");
                 final ValueCompiler valueCompiler = new ValueCompiler();
