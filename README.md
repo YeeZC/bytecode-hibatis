@@ -136,7 +136,7 @@ public class Example {
         hiBatisConfig.setConfiguration(getConfiguration());
         final TemplateFactory templateFactory = hiBatisConfig.buildTemplateFactory();
         final HiBatisTemplate template = templateFactory.createTemplate();
-        final int count = template.runNonTx(TestDao.class, ((dao, session) -> dao.getAllCount()));
+        final int count = template.runTx(TestDao.class, ((dao, session) -> dao.getAllCount()));
         System.out.println("find count " + count);
     }
 

@@ -30,6 +30,9 @@ import java.util.Optional;
 public class BaseHiBatisTemplate implements HiBatisTemplate {
     private final DaoRegistry registry;
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseHiBatisTemplate.class);
+    /**
+     * TODO 有线程安全和Session释放的问题
+     */
     private final SupplierLazyGet<Session> sessionSupplier;
 
     public BaseHiBatisTemplate(SessionFactory sessionFactory, DaoRegistry registry) {
@@ -69,7 +72,7 @@ public class BaseHiBatisTemplate implements HiBatisTemplate {
     }
 
     @Override
-    public <T> T createDao(Class<T> daoInf, Session session) throws HibatisException {
+    public <T> T createDao(Class<T> daoInf) throws HibatisException {
         try {
             return registry.getNewDao(daoInf, sessionSupplier);
         } catch (Exception e) {

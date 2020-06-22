@@ -32,12 +32,11 @@ public interface HiBatisTemplate {
     /**
      * 创建Dao对象
      *
-     * @param daoInf
-     * @param session
      * @param <T>
+     * @param daoInf
      * @return
      */
-    <T> T createDao(Class<T> daoInf, Session session) throws HibatisException;
+    <T> T createDao(Class<T> daoInf) throws HibatisException;
 
     /**
      * 插入方法
@@ -119,7 +118,7 @@ public interface HiBatisTemplate {
      */
     default <Dao, T> T runTx(Class<Dao> daoClass, BiProcess<Dao, T> callable) {
         return runTx(session -> {
-            final Dao dao = createDao(daoClass, session);
+            final Dao dao = createDao(daoClass);
             final T process = callable.process(dao, session);
             if (process instanceof PageList) {
                 return (T) ((PageList) process).getContent();
@@ -128,24 +127,6 @@ public interface HiBatisTemplate {
         });
     }
 
-    /**
-     * 自定义dao执行  无事务
-     * @param daoClass
-     * @param callable
-     * @param <Dao>
-     * @param <T>
-     * @return
-     */
-    default <Dao, T> T runNonTx(Class<Dao> daoClass, BiProcess<Dao, T> callable) {
-        return runNonTx(session -> {
-            final Dao dao = createDao(daoClass, session);
-            final T process = callable.process(dao, session);
-            if (process instanceof PageList) {
-                return (T) ((PageList) process).getContent();
-            }
-            return process;
-        });
-    }
 
     /**
      * 有事务 插入单值

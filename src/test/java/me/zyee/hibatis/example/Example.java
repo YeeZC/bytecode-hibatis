@@ -26,7 +26,7 @@ public class Example {
         hiBatisConfig.setConfiguration(getConfiguration());
         final TemplateFactory templateFactory = hiBatisConfig.buildTemplateFactory();
         final HiBatisTemplate template = templateFactory.createTemplate();
-        final Object count = template.runNonTx(TestDao.class, ((dao, session) -> {
+        final Object count = template.runTx(TestDao.class, ((dao, session) -> {
             PageHelper.startPage(0, 2);
             final List<TestBean> allNative = dao.findAllNative();
             return PageInfo.of(allNative);
