@@ -1,5 +1,6 @@
 package me.zyee.hibatis.example;
 
+import com.mysql.jdbc.Driver;
 import me.zyee.hibatis.bytecode.TestBean;
 import me.zyee.hibatis.bytecode.TestDao;
 import me.zyee.hibatis.bytecode.TestEntity;
@@ -9,9 +10,8 @@ import me.zyee.hibatis.query.page.PageHelper;
 import me.zyee.hibatis.query.page.PageInfo;
 import me.zyee.hibatis.template.HiBatisTemplate;
 import me.zyee.hibatis.template.factory.TemplateFactory;
-import org.hibernate.cfg.Configuration;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -20,10 +20,15 @@ import java.util.List;
  * Create by yee on 2020/6/16
  */
 public class Example {
-    public static void main(String[] args) throws HibatisException {
+    public static void main(String[] args) throws HibatisException, IOException {
         final HiBatisConfig hiBatisConfig = new HiBatisConfig();
         hiBatisConfig.setXmlPattern("*Dao.xml");
-        hiBatisConfig.setConfiguration(getConfiguration());
+        hiBatisConfig.setDialect("org.hibernate.dialect.MySQL57Dialect");
+        hiBatisConfig.setUsername("admin");
+        hiBatisConfig.setPassword("admin");
+        hiBatisConfig.setDriverClass(Driver.class.getName());
+        hiBatisConfig.setUrl("jdbc:mysql://localhost:3306/test_hibernate");
+        hiBatisConfig.addEntity(TestEntity.class);
         final TemplateFactory templateFactory = hiBatisConfig.buildTemplateFactory();
         final HiBatisTemplate template = templateFactory.createTemplate();
         final Object count = template.runTx(TestDao.class, ((dao, session) -> {
@@ -31,20 +36,9 @@ public class Example {
             final List<TestBean> allNative = dao.findAllNative();
             return PageInfo.of(allNative);
         }));
+
         System.out.println("find count " + count);
     }
 
 
-    private static Configuration getConfiguration() {
-        Configuration configuration = new Configuration();
-        File confFile = new File("hibernate.cfg.xml");
-        if (confFile.exists()) {
-            configuration.configure(confFile);
-        } else {
-            configuration.configure("hibernate.cfg.xml");
-        }
-
-        configuration.addAnnotatedClass(TestEntity.class);
-        return configuration;
-    }
 }

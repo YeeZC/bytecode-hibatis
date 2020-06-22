@@ -130,28 +130,23 @@ import java.io.File;
  * Create by yee on 2020/6/16
  */
 public class Example {
-    public static void main(String[] args) throws HibatisException {
+    public static void main(String[] args) {
         final HiBatisConfig hiBatisConfig = new HiBatisConfig();
         hiBatisConfig.setXmlPattern("*Dao.xml");
-        hiBatisConfig.setConfiguration(getConfiguration());
+        hiBatisConfig.setDialect("org.hibernate.dialect.MySQL57Dialect");
+        hiBatisConfig.setUsername("admin");
+        hiBatisConfig.setPassword("admin");
+        hiBatisConfig.setDriverClass(Driver.class.getName());
+        hiBatisConfig.setUrl("jdbc:mysql://localhost:3306/test_hibernate");
+        hiBatisConfig.addEntity(TestEntity.class);
         final TemplateFactory templateFactory = hiBatisConfig.buildTemplateFactory();
         final HiBatisTemplate template = templateFactory.createTemplate();
-        final int count = template.runTx(TestDao.class, ((dao, session) -> dao.getAllCount()));
+        final Object count = template.runTx(TestDao.class, ((dao, session) -> {
+            PageHelper.startPage(0, 2);
+            final List<TestBean> allNative = dao.findAllNative();
+            return PageInfo.of(allNative);
+        }));
         System.out.println("find count " + count);
-    }
-
-
-    private static Configuration getConfiguration() {
-        Configuration configuration = new Configuration();
-        File confFile = new File("hibernate.cfg.xml");
-        if (confFile.exists()) {
-            configuration.configure(confFile);
-        } else {
-            configuration.configure("hibernate.cfg.xml");
-        }
-
-        configuration.addAnnotatedClass(TestEntity.class);
-        return configuration;
     }
 }
 

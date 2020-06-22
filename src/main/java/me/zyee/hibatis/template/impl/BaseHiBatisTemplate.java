@@ -3,11 +3,11 @@ package me.zyee.hibatis.template.impl;
 import me.zyee.hibatis.common.LazyGet;
 import me.zyee.hibatis.common.SupplierLazyGet;
 import me.zyee.hibatis.dao.registry.DaoRegistry;
+import me.zyee.hibatis.datasource.DataSource;
 import me.zyee.hibatis.exception.HibatisException;
 import me.zyee.hibatis.template.HiBatisTemplate;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +35,9 @@ public class BaseHiBatisTemplate implements HiBatisTemplate {
      */
     private final SupplierLazyGet<Session> sessionSupplier;
 
-    public BaseHiBatisTemplate(SessionFactory sessionFactory, DaoRegistry registry) {
+    public BaseHiBatisTemplate(DataSource sessionFactory, DaoRegistry registry) {
         this.registry = registry;
-        this.sessionSupplier = LazyGet.of(sessionFactory::openSession)
+        this.sessionSupplier = LazyGet.of(sessionFactory::createSession)
                 .withTest(session -> !session.isOpen());
     }
 
