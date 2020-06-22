@@ -35,7 +35,7 @@ public class HiBatisConfig {
     private boolean showSql;
     private final Set<Class<?>> entityClasses = new HashSet<>();
     private final Properties properties = new Properties();
-
+    private String cfgPath;
     /**
      * dao xml的扫描路径
      */
@@ -164,5 +164,13 @@ public class HiBatisConfig {
 
     public void setShowSql(boolean showSql) {
         this.showSql = showSql;
+    }
+
+    public String getCfgPath() {
+        return cfgPath;
+    }
+
+    public void setCfgPath(String cfgPath) {
+        this.cfgPath = cfgPath;
     }
 }

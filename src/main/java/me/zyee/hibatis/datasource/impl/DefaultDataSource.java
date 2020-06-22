@@ -31,15 +31,19 @@ public class DefaultDataSource implements DataSource {
         this.config = config;
         this.factoryHolder = LazyGet.of(() -> {
             final BootstrapServiceRegistryBuilder builder = new BootstrapServiceRegistryBuilder();
-            final Configuration configuration = new Configuration(builder.build())
-                    .addProperties(config.toProperties());
-            Optional<Properties> properties = Optional.ofNullable(toProperties());
-            properties.ifPresent(configuration::addProperties);
-            final Set<Class<?>> entityClasses = config.getEntityClasses();
-            for (Class<?> entityClass : entityClasses) {
-                configuration.addAnnotatedClass(entityClass);
+            final Configuration configuration = new Configuration(builder.build());
+            if (StringUtils.isEmpty(config.getCfgPath())) {
+                configuration.addProperties(config.toProperties());
+                Optional<Properties> properties = Optional.ofNullable(toProperties());
+                properties.ifPresent(configuration::addProperties);
+                final Set<Class<?>> entityClasses = config.getEntityClasses();
+                for (Class<?> entityClass : entityClasses) {
+                    configuration.addAnnotatedClass(entityClass);
+                }
+                return configuration.buildSessionFactory();
             }
-            return configuration.buildSessionFactory();
+            final String cfgPath = config.getCfgPath();
+            return configuration.configure(cfgPath).buildSessionFactory();
         });
     }
 
