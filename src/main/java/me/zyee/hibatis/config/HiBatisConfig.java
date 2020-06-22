@@ -2,15 +2,18 @@ package me.zyee.hibatis.config;
 
 import me.zyee.hibatis.dao.registry.DaoRegistry;
 import me.zyee.hibatis.dao.scaner.DaoScanner;
+import me.zyee.hibatis.datasource.DataSource;
 import me.zyee.hibatis.datasource.annotation.ConfigProperty;
-import me.zyee.hibatis.datasource.impl.DruidDataSource;
+import me.zyee.hibatis.datasource.impl.DefaultDataSource;
 import me.zyee.hibatis.template.factory.TemplateFactory;
 import me.zyee.hibatis.template.factory.impl.DefaultTemplateFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.hibernate.cfg.Configuration;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +39,7 @@ public class HiBatisConfig {
     private final Set<Class<?>> entityClasses = new HashSet<>();
     private final Properties properties = new Properties();
     private String cfgPath;
+    private Class<? extends DataSource> dataSource;
     /**
      * dao xml的扫描路径
      */
@@ -43,23 +47,22 @@ public class HiBatisConfig {
 
     private String xmlPattern;
 
-    public void setConfiguration(Configuration configuration) {
-    }
-
     public String getScanPath() {
         return scanPath;
     }
 
-    public void setScanPath(String scanPath) {
+    public HiBatisConfig scanPath(String scanPath) {
         this.scanPath = scanPath;
+        return this;
     }
 
     public String getXmlPattern() {
         return xmlPattern;
     }
 
-    public void setXmlPattern(String xmlPattern) {
+    public HiBatisConfig xmlPattern(String xmlPattern) {
         this.xmlPattern = xmlPattern;
+        return this;
     }
 
     /**
@@ -75,7 +78,16 @@ public class HiBatisConfig {
             scanPath = StringUtils.EMPTY;
         }
         DaoScanner.scan(scanPath, xmlPattern).forEach(daoRegistry::addDao);
-        return new DefaultTemplateFactory(new DruidDataSource(this), daoRegistry);
+        if (null == dataSource) {
+            dataSource = DefaultDataSource.class;
+        }
+        final Constructor<? extends DataSource> constructor =
+                ConstructorUtils.getAccessibleConstructor(dataSource, HiBatisConfig.class);
+        try {
+            return new DefaultTemplateFactory(constructor.newInstance(this), daoRegistry);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            return new DefaultTemplateFactory(new DefaultDataSource(this), daoRegistry);
+        }
     }
 
     public Properties toProperties() {
@@ -117,40 +129,45 @@ public class HiBatisConfig {
         return username;
     }
 
-    public void setUsername(String username) {
+    public HiBatisConfig username(String username) {
         this.username = username;
+        return this;
     }
 
     public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public HiBatisConfig password(String password) {
         this.password = password;
+        return this;
     }
 
     public String getDialect() {
         return dialect;
     }
 
-    public void setDialect(String dialect) {
+    public HiBatisConfig dialect(String dialect) {
         this.dialect = dialect;
+        return this;
     }
 
     public String getUrl() {
         return url;
     }
 
-    public void setUrl(String url) {
+    public HiBatisConfig url(String url) {
         this.url = url;
+        return this;
     }
 
     public String getDriverClass() {
         return driverClass;
     }
 
-    public void setDriverClass(String driverClass) {
+    public HiBatisConfig driverClass(String driverClass) {
         this.driverClass = driverClass;
+        return this;
     }
 
     public HiBatisConfig addEntity(Class<?> entityClasses) {
@@ -162,15 +179,22 @@ public class HiBatisConfig {
         return showSql;
     }
 
-    public void setShowSql(boolean showSql) {
+    public HiBatisConfig showSql(boolean showSql) {
         this.showSql = showSql;
+        return this;
     }
 
     public String getCfgPath() {
         return cfgPath;
     }
 
-    public void setCfgPath(String cfgPath) {
+    public HiBatisConfig cfgPath(String cfgPath) {
         this.cfgPath = cfgPath;
+        return this;
+    }
+
+    public HiBatisConfig dataSource(Class<? extends DataSource> dataSource) {
+        this.dataSource = dataSource;
+        return this;
     }
 }

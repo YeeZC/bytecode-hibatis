@@ -5,13 +5,12 @@ import me.zyee.hibatis.bytecode.TestBean;
 import me.zyee.hibatis.bytecode.TestDao;
 import me.zyee.hibatis.bytecode.TestEntity;
 import me.zyee.hibatis.config.HiBatisConfig;
-import me.zyee.hibatis.exception.HibatisException;
+import me.zyee.hibatis.datasource.impl.HikariDataSource;
 import me.zyee.hibatis.query.page.PageHelper;
 import me.zyee.hibatis.query.page.PageInfo;
 import me.zyee.hibatis.template.HiBatisTemplate;
 import me.zyee.hibatis.template.factory.TemplateFactory;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -20,15 +19,16 @@ import java.util.List;
  * Create by yee on 2020/6/16
  */
 public class Example {
-    public static void main(String[] args) throws HibatisException, IOException {
-        final HiBatisConfig hiBatisConfig = new HiBatisConfig();
-        hiBatisConfig.setXmlPattern("*Dao.xml");
-        hiBatisConfig.setDialect("org.hibernate.dialect.MySQL57Dialect");
-        hiBatisConfig.setUsername("admin");
-        hiBatisConfig.setPassword("admin");
-        hiBatisConfig.setDriverClass(Driver.class.getName());
-        hiBatisConfig.setUrl("jdbc:mysql://localhost:3306/test_hibernate");
-        hiBatisConfig.addEntity(TestEntity.class);
+    public static void main(String[] args) {
+        final HiBatisConfig hiBatisConfig = new HiBatisConfig()
+                .xmlPattern("*Dao.xml")
+                .dialect("org.hibernate.dialect.MySQL57Dialect")
+                .username("root")
+                .password("zhy100112")
+                .driverClass(Driver.class.getName())
+                .dataSource(HikariDataSource.class)
+                .url("jdbc:mysql://localhost:3306/test_hibernate")
+                .addEntity(TestEntity.class);
         final TemplateFactory templateFactory = hiBatisConfig.buildTemplateFactory();
         final HiBatisTemplate template = templateFactory.createTemplate();
         final Object count = template.runTx(TestDao.class, ((dao, session) -> {
