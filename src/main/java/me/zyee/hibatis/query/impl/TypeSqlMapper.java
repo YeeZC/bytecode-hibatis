@@ -1,5 +1,6 @@
 package me.zyee.hibatis.query.impl;
 
+import me.zyee.hibatis.common.SupplierLazyGet;
 import me.zyee.hibatis.query.PageQuery;
 import me.zyee.hibatis.query.result.impl.PageListImpl;
 import me.zyee.hibatis.transformer.HibatisReturnClassTransformer;
@@ -18,22 +19,34 @@ import java.util.function.BiFunction;
 public class TypeSqlMapper extends SqlMapperImpl<Object> {
     private final Class<?> returnType;
 
-    public TypeSqlMapper(Class<?> returnType, BiFunction<Session, String, Query<?>> createQuery) {
-        super(createQuery);
+    public TypeSqlMapper(Class<?> returnType, BiFunction<Session, String, Query<?>> createQuery,
+                         SupplierLazyGet<Session> sessionSupplier) {
+        super(createQuery, sessionSupplier);
         this.returnType = returnType;
     }
 
     @Override
-    public List select(Session session, String sql, Map param) {
+    public List select(String sql, Map param) {
+        final Session session = sessionSupplier.get();
         final Query<?> query = getQuery(session, sql, param);
         if (query instanceof PageQuery) {
-            final PageListImpl<?> ts = new PageListImpl<>(query::getResultList,
-                    () -> getCount(session, sql, param));
+            final PageListImpl<?> ts = new PageListImpl<>(() -> {
+                try {
+                    return query.getResultList();
+                } finally {
+                    session.close();
+                }
+            },
+                    () -> getCount(sql, param));
             ts.setCurrentPage(((PageQuery) query).getPage());
             ts.setPageSize(((PageQuery) query).getSize());
             return ts;
         }
-        return query.getResultList();
+        try {
+            return query.getResultList();
+        } finally {
+            session.close();
+        }
     }
 
     private Query<?> getQuery(Session session, String sql, Map param) {
@@ -46,7 +59,9 @@ public class TypeSqlMapper extends SqlMapperImpl<Object> {
     }
 
     @Override
-    public Object selectOne(Session session, String sql, Map param) {
-        return getQuery(session, sql, param).getSingleResult();
+    public Object selectOne(String sql, Map param) {
+        try (Session session = sessionSupplier.get()) {
+            return getQuery(session, sql, param).getSingleResult();
+        }
     }
 }

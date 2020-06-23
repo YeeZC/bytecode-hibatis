@@ -1,7 +1,5 @@
 package me.zyee.hibatis.query;
 
-import org.hibernate.Session;
-
 import java.util.List;
 import java.util.Map;
 
@@ -11,5 +9,5 @@ import java.util.Map;
  * Create by yee on 2020/6/18
  */
 public interface ListSelectMapper<T> {
-    List<T> select(Session session, String sql, Map param);
+    List<T> select(String sql, Map param);
 }

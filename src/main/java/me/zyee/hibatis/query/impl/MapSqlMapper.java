@@ -1,6 +1,7 @@
 package me.zyee.hibatis.query.impl;
 
 import me.zyee.hibatis.bytecode.compiler.bean.ObjectCast;
+import me.zyee.hibatis.common.SupplierLazyGet;
 import me.zyee.hibatis.dao.registry.MapRegistry;
 import me.zyee.hibatis.exception.ByteCodeGenerateException;
 import me.zyee.hibatis.query.PageQuery;
@@ -23,27 +24,40 @@ public class MapSqlMapper extends SqlMapperImpl {
     private final MapRegistry mapRegistry;
     private final String mapId;
 
-    public MapSqlMapper(MapRegistry mapRegistry, String mapId, BiFunction<Session, String, Query<?>> createQuery) {
-        super(createQuery);
+    public MapSqlMapper(MapRegistry mapRegistry, String mapId,
+                        BiFunction<Session, String, Query<?>> createQuery,
+                        SupplierLazyGet<Session> sessionSupplier) {
+        super(createQuery, sessionSupplier);
         this.mapRegistry = mapRegistry;
         this.mapId = mapId;
     }
 
     @Override
-    public List select(Session session, String sql, Map param) {
+    public List select(String sql, Map param) {
+        Session session = (Session) sessionSupplier.get();
         final Query<?> query = getQuery(session, sql, param);
         if (query instanceof PageQuery) {
             final PageListImpl<?> ts = new PageListImpl<>(() ->
-                    query.getResultStream()
+            {
+                try {
+                    return query.getResultStream()
                             .map(o -> ((ObjectCast<?>) o).cast())
-                            .collect(Collectors.toList()),
-                    () -> getCount(session, sql, param));
+                            .collect(Collectors.toList());
+                } finally {
+                    session.close();
+                }
+            },
+                    () -> getCount(sql, param));
             ts.setCurrentPage(((PageQuery) query).getPage());
             ts.setPageSize(((PageQuery) query).getSize());
             return ts;
         }
-        return query.getResultStream().map(o -> ((ObjectCast<?>) o).cast())
-                .collect(Collectors.toList());
+        try {
+            return query.getResultStream().map(o -> ((ObjectCast<?>) o).cast())
+                    .collect(Collectors.toList());
+        } finally {
+            session.close();
+        }
     }
 
     private Query<?> getQuery(Session session, String sql, Map param) {
@@ -62,7 +76,9 @@ public class MapSqlMapper extends SqlMapperImpl {
     }
 
     @Override
-    public Object selectOne(Session session, String sql, Map param) {
-        return ((ObjectCast<?>) getQuery(session, sql, param).getSingleResult()).cast();
+    public Object selectOne(String sql, Map param) {
+        try (Session session = (Session) sessionSupplier.get()) {
+            return ((ObjectCast<?>) getQuery(session, sql, param).getSingleResult()).cast();
+        }
     }
 }

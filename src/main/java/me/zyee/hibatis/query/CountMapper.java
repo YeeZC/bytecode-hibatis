@@ -1,7 +1,5 @@
 package me.zyee.hibatis.query;
 
-import org.hibernate.Session;
-
 import java.util.Map;
 
 /**
@@ -10,5 +8,5 @@ import java.util.Map;
  * Create by yee on 2020/6/19
  */
 public interface CountMapper {
-    long getCount(Session session, String sql, Map param);
+    long getCount(String sql, Map param);
 }

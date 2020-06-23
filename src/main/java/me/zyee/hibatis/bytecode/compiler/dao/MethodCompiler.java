@@ -19,7 +19,6 @@ import me.zyee.hibatis.query.MapperBuilder;
 import me.zyee.hibatis.query.OneSelectMapper;
 import me.zyee.hibatis.query.SqlMapper;
 import me.zyee.hibatis.query.impl.SqlMapperBuilder;
-import org.hibernate.Session;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -74,17 +73,16 @@ public class MethodCompiler implements NoRetCompiler<MethodCompiler.Context> {
         }
 
         final String hql = methodInfo.getHql().trim();
+        final BytecodeExpression sessionSupplier = scope.getThis().getField("session", SupplierLazyGet.class);
         final BytecodeExpression mapRegistry = scope.getThis().getField("mapRegistry", MapRegistry.class);
         final Variable builder = scope.declareVariable(MapperBuilder.class, "builder");
-        body.append(builder.set(newInstance(SqlMapperBuilder.class, mapRegistry)));
+        body.append(builder.set(newInstance(SqlMapperBuilder.class, mapRegistry, sessionSupplier)));
         if (methodInfo.isNativeSql()) {
             body.append(builder.invoke("withSql", MapperBuilder.class));
         }
         if (methodInfo.getType() == MethodType.MODIFY) {
             body.append(builder.invoke("build", SqlMapper.class).invoke("executeUpdate",
                     Integer.TYPE,
-                    scope.getThis().getField("session", SupplierLazyGet.class)
-                            .invoke("get", Object.class).cast(Session.class),
                     constantString(hql),
                     params)).retInt();
         } else {
@@ -105,8 +103,6 @@ public class MethodCompiler implements NoRetCompiler<MethodCompiler.Context> {
                 final Variable mapper = scope.declareVariable(ListSelectMapper.class, "mapper");
                 body.append(mapper.set(builder.invoke("build", SqlMapper.class).cast(ListSelectMapper.class)));
                 body.append(mapper.invoke("select", List.class,
-                        scope.getThis().getField("session", SupplierLazyGet.class)
-                                .invoke("get", Object.class).cast(Session.class),
                         constantString(hql),
                         params)).retObject();
             } else if (returnType.isArray()) {
@@ -115,8 +111,6 @@ public class MethodCompiler implements NoRetCompiler<MethodCompiler.Context> {
                 final Variable mapper = scope.declareVariable(ListSelectMapper.class, "mapper");
                 body.append(mapper.set(builder.invoke("build", SqlMapper.class).cast(ListSelectMapper.class)));
                 body.append(mapper.invoke("select", List.class,
-                        scope.getThis().getField("session", SupplierLazyGet.class)
-                                .invoke("get", Object.class).cast(Session.class),
                         constantString(hql),
                         params).invoke(toArray,
                         newArray(type(returnType), 0))
@@ -131,8 +125,6 @@ public class MethodCompiler implements NoRetCompiler<MethodCompiler.Context> {
                 body.append(mapper.set(builder.invoke("build", SqlMapper.class).cast(OneSelectMapper.class)));
                 final Variable result = scope.createTempVariable(Object.class);
                 body.append(result.set(mapper.invoke("selectOne", Object.class,
-                        scope.getThis().getField("session", SupplierLazyGet.class)
-                                .invoke("get", Object.class).cast(Session.class),
                         constantString(hql),
                         params)));
                 body.append(valueCompiler.compile(new ValueCompiler.Context(returnType, result)))

@@ -1,7 +1,5 @@
 package me.zyee.hibatis.query;
 
-import org.hibernate.Session;
-
 import java.util.Map;
 
 /**
@@ -10,5 +8,5 @@ import java.util.Map;
  * Create by yee on 2020/6/18
  */
 public interface OneSelectMapper<T> {
-    T selectOne(Session session, String sql, Map param);
+    T selectOne(String sql, Map param);
 }

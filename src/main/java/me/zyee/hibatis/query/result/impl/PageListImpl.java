@@ -6,6 +6,7 @@ import me.zyee.hibatis.query.result.PageList;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
@@ -20,8 +21,8 @@ public class PageListImpl<T> extends ArrayList<T> implements PageList<T> {
     private int currentPage;
     private int pageSize;
 
-    private final SupplierLazyGet<List<T>> content;
-    private final SupplierLazyGet<Long> count;
+    private SupplierLazyGet<List<T>> content;
+    private SupplierLazyGet<Long> count;
 
     public PageListImpl(Supplier<List<T>> content, Supplier<Long> count) {
         this.content = LazyGet.of(content);
@@ -84,5 +85,13 @@ public class PageListImpl<T> extends ArrayList<T> implements PageList<T> {
     @Override
     public <T1> T1[] toArray(T1[] a) {
         return this.content.get().toArray(a);
+    }
+
+    @Override
+    public void clear() {
+        content.close();
+        count.close();
+        content = LazyGet.of(Collections::emptyList);
+        count = LazyGet.of(() -> 0L);
     }
 }

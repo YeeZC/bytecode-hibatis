@@ -1,6 +1,7 @@
 package me.zyee.hibatis.query.impl;
 
 import me.zyee.hibatis.bytecode.HibatisGenerator;
+import me.zyee.hibatis.common.SupplierLazyGet;
 import me.zyee.hibatis.dao.registry.MapRegistry;
 import me.zyee.hibatis.query.MapperBuilder;
 import me.zyee.hibatis.query.PageQuery;
@@ -26,10 +27,12 @@ public class SqlMapperBuilder implements MapperBuilder {
     private String mapId;
     private Class<?> resultType;
     private final MapRegistry mapRegistry;
+    private final SupplierLazyGet<Session> supplierLazyGet;
 
 
-    public SqlMapperBuilder(MapRegistry mapRegistry) {
+    public SqlMapperBuilder(MapRegistry mapRegistry, SupplierLazyGet<Session> supplierLazyGet) {
         this.mapRegistry = mapRegistry;
+        this.supplierLazyGet = supplierLazyGet;
     }
 
     @Override
@@ -83,12 +86,12 @@ public class SqlMapperBuilder implements MapperBuilder {
         });
 
         if (StringUtils.isNotEmpty(mapId)) {
-            return new MapSqlMapper(mapRegistry, mapId, createQuery);
+            return new MapSqlMapper(mapRegistry, mapId, createQuery, supplierLazyGet);
         }
         if (null != resultType) {
-            return new TypeSqlMapper(resultType, createQuery);
+            return new TypeSqlMapper(resultType, createQuery, supplierLazyGet);
         }
-        return new SqlMapperImpl<>(createQuery);
+        return new SqlMapperImpl<>(createQuery, supplierLazyGet);
     }
 
 

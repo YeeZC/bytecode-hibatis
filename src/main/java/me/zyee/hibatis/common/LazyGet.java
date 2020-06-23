@@ -24,7 +24,10 @@ public abstract class LazyGet<T> implements AutoCloseable {
     }
 
     @Override
-    public void close() {
+    synchronized public void close() {
+        if (element instanceof ReferenceItem) {
+            ((ReferenceItem) element).decrement();
+        }
         if (element instanceof AutoCloseable) {
             try {
                 ((AutoCloseable) element).close();
@@ -32,6 +35,7 @@ public abstract class LazyGet<T> implements AutoCloseable {
                 throw new RuntimeException(e);
             }
         }
+        element = null;
     }
 
     public static <T> SupplierLazyGet<T> of(Supplier<T> supplier) {

@@ -20,6 +20,9 @@ public class SupplierLazyGet<T> extends LazyGet<T> {
             if (predicate.test(element)) {
                 element = supplier.get();
             }
+            if (element instanceof ReferenceItem) {
+                ((ReferenceItem) element).increment();
+            }
         }
         return element;
     }

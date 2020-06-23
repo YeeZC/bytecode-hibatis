@@ -196,7 +196,13 @@ public interface HiBatisTemplate {
      */
     default <T> List<T> findByIds(Class<T> entity, Iterable<Serializable> ids) {
         return runNonTx(session ->
-                findByIds(session, entity, ids)
+                {
+                    final List<T> byIds = findByIds(session, entity, ids);
+                    if (byIds instanceof PageList) {
+                        return ((PageList<T>) byIds).getContent();
+                    }
+                    return byIds;
+                }
         );
     }
 
@@ -216,7 +222,13 @@ public interface HiBatisTemplate {
      * @return
      */
     default <T> List<T> findAll(Class<T> entity) {
-        return runNonTx(session -> findAll(session, entity));
+        return runNonTx(session -> {
+            final List<T> all = findAll(session, entity);
+            if (all instanceof PageList) {
+                return ((PageList<T>) all).getContent();
+            }
+            return all;
+        });
     }
 
     /**
